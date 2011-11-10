@@ -9,11 +9,12 @@ include_directories(src ${LIBGIT2_INCLUDES} ${GSHELL_INCLUDES} ${QT_INCLUDES})
 #Build options
 option (BUILD_TESTS "Build Tests" OFF)
 
-if (not CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug" cache string "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
 set(GEAKIT_SRCS
+	src/main.cpp
 	)
 
 set(GEAKIT_HEADERS

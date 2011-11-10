@@ -11,7 +11,7 @@ option (BUILD_SHARED_LIBS "Build Shared Library (OFF for Static)" ON)
 #option (THREADSAFE "Build as threadsafe" OFF)
 option (BUILD_TESTS "Build Tests" OFF)
 
-if (not CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug" cache string "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
