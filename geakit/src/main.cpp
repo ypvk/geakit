@@ -1,7 +1,11 @@
 #include <QApplication>
 
-int main(int argc, const char *argv[])
+#include "gui/gmainwindow.h"
+
+int main(int argc, char *argv[])
 {
-	QApplication app;
+	QApplication app(argc, argv);
+	GMainWindow w;
+	w.show();
 	return app.exec();
 }

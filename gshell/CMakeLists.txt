@@ -18,6 +18,8 @@ endif ()
 add_definitions(-DGSHELL_LIBRARY)
 
 set(GSHELL_SRCS
+	src/high.cpp
+	src/low.cpp
 	)
 
 set(GSHELL_HEADERS

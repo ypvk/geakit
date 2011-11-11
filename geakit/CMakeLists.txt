@@ -15,12 +15,18 @@ endif ()
 
 set(GEAKIT_SRCS
 	src/main.cpp
+	src/gui/gmainwindow.cpp
+	src/gui/gsettingsdialog.cpp
 	)
 
 set(GEAKIT_HEADERS
+	src/gui/gmainwindow.h
+	src/gui/gsettingsdialog.h
 	)
 
 set(GEAKIT_UIS
+	uis/gmainwindow.ui
+	uis/gsettingsdialog.ui
 	)
 
 set(GEAKIT_RCCS

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SettingsDialog</class>
- <widget class="QDialog" name="SettingsDialog">
+ <class>GSettingsDialog</class>
+ <widget class="QDialog" name="GSettingsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -243,5 +243,38 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>GSettingsDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>456</x>
+     <y>567</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>495</x>
+     <y>562</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>GSettingsDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>374</x>
+     <y>557</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>522</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
