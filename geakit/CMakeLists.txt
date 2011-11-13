@@ -17,11 +17,13 @@ set(GEAKIT_SRCS
 	src/main.cpp
 	src/gui/gmainwindow.cpp
 	src/gui/gsettingsdialog.cpp
+	src/api/gaccountapi.cpp
 	)
 
 set(GEAKIT_HEADERS
 	src/gui/gmainwindow.h
 	src/gui/gsettingsdialog.h
+	src/api/gaccountapi.h
 	)
 
 set(GEAKIT_UIS

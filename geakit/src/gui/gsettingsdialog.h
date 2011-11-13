@@ -1,5 +1,5 @@
-#ifndef GEAKIT_GSETTINGSDIALOG_H
-#define GEAKIT_GSETTINGDSIALOG_H
+#ifndef GEAKIT_GUI_GSETTINGSDIALOG_H
+#define GEAKIT_GUI_GSETTINGDSIALOG_H
 
 #include <QDialog>
 
@@ -16,6 +16,9 @@ class GSettingsDialog :public QDialog
 		~GSettingsDialog(){}
 	private:
 		Ui::GSettingsDialog* ui;
+
+	private slots:
+		void onLoginButtonClicked();
 };
 
 #endif

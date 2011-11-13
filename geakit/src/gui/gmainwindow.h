@@ -1,5 +1,5 @@
-#ifndef GEAKIT_GMAINWINDOW_H
-#define GEAKIT_GMAINWINDOW_H
+#ifndef GEAKIT_GUI_GMAINWINDOW_H
+#define GEAKIT_GUI_GMAINWINDOW_H
 
 #include <QMainWindow>
 
@@ -24,7 +24,7 @@ class GMainWindow :public QMainWindow
 		QAction* settingsAction;
 	
 	private slots:
-		void onActionSettingsTriggered();
+		void onSettingsActionTriggered();
 
 	private:
 		void setupMenus();
