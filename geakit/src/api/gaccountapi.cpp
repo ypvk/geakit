@@ -4,14 +4,14 @@
 
 GAccountAPI::GAccountAPI(QNetworkAccessManager* manager)
 {
-	m_manager = manager;
+  m_manager = manager;
 }
 
 void GAccountAPI::setNetManager(QNetworkAccessManager* manager)
 {
-	if(manager)
-	{
-		m_manager = manager;
+  if(manager)
+  {
+    m_manager = manager;
         //Do some connect here
-	}
+  }
 }

@@ -5,9 +5,9 @@
 
 class G_SHARED_EXPORT GCmd
 {
-	public:
-		GCmd();
-		~GCmd();
+  public:
+    GCmd();
+    ~GCmd();
 };
 
 #endif

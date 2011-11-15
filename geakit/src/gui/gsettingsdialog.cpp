@@ -13,9 +13,9 @@ const QString test_login_url = "https://api.github.com/user";
 
 GSettingsDialog::GSettingsDialog(QWidget* parent):QDialog(parent), ui(new Ui::GSettingsDialog)
 {
-	ui->setupUi(this);
+  ui->setupUi(this);
     m_manager = new QNetworkAccessManager(this);
-	connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(onLoginButtonClicked()));
+  connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(onLoginButtonClicked()));
     connect(m_manager, SIGNAL(finished(QNetworkReply* reply)), this, SLOT(dispathc(QNetworkReply* reply)));
     connect(m_manager, SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)), this, SLOT(handleUnAuth(QNetworkReply*, QAuthenticator*)));
 }
@@ -30,16 +30,16 @@ void GSettingsDialog::onLoginButtonClicked()
 
 void GSettingsDialog::handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator)
 {
-	if(authenticator->user().isEmpty() || authenticator->password().isEmpty())
-	{
-		authenticator->setUser(ui->usernameEdit->text());
-		authenticator->setPassword(ui->passwordEdit->text());
-	}
-	else
-	{
+  if(authenticator->user().isEmpty() || authenticator->password().isEmpty())
+  {
+    authenticator->setUser(ui->usernameEdit->text());
+    authenticator->setPassword(ui->passwordEdit->text());
+  }
+  else
+  {
         ui->loginStatusLabel->setText(tr("Login Failed!"));
         ui->loginButton->setEnabled(true);
-	}
+  }
 }
 
 void GSettingsDialog::dispatch(QNetworkReply* reply)
