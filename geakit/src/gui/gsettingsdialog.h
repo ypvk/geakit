@@ -27,6 +27,7 @@ class GSettingsDialog :public QDialog
   private:
     Ui::GSettingsDialog* ui;
     QNetworkAccessManager* m_manager;
+    bool m_toAuth;
 
   private slots:
     void onLoginButtonClicked();

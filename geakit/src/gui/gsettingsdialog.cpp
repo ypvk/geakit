@@ -14,6 +14,7 @@ GSettingsDialog::GSettingsDialog(QWidget* parent):QDialog(parent), ui(new Ui::GS
 {
   ui->setupUi(this);
   m_manager = new QNetworkAccessManager(this);
+  m_toAuth = false;
 
   connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(onLoginButtonClicked()));
   connect(ui->passwordEdit, SIGNAL(textEdited(QString)), this, SLOT(onAccountSetted(QString)));
@@ -28,6 +29,7 @@ void GSettingsDialog::onLoginButtonClicked()
   ui->usernameEdit->setEnabled(false);
   ui->passwordEdit->setEnabled(false);
   ui->loginStatusLabel->setText(tr("Login ..."));
+  m_toAuth = true;
   m_manager->get(QNetworkRequest(QUrl(test_login_url)));
 }
 
@@ -39,22 +41,21 @@ void GSettingsDialog::onAccountSetted(QString /*text*/)
 
 void GSettingsDialog::handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator)
 {
-  if(authenticator->user().isEmpty() || authenticator->password().isEmpty())
+  if(m_toAuth)
   {
     authenticator->setUser(ui->usernameEdit->text());
     authenticator->setPassword(ui->passwordEdit->text());
+    m_toAuth = false;
   }
   else
   {
-    emit loginResult(false, reply->errorString());
+    emit loginResult(false, tr("Incorrect password"));
   }
 }
 
 void GSettingsDialog::processLoginResult(bool is_success, QString message){
   if(is_success){
     ui->loginButton->setText(tr("Logged in"));
-    ui->usernameEdit->setEnabled(true);
-    ui->passwordEdit->setEnabled(true);
     ui->loginStatusLabel->setText(tr("Login Successfully!"));
   }
   else{
@@ -71,7 +72,9 @@ void GSettingsDialog::parseFinish(QNetworkReply* reply)
     case QNetworkReply::NoError:
       {
         if(reply->url().path() == QUrl(test_login_url).path())
-          emit loginResult(true, reply->errorString());
+          emit loginResult(true, "");
+        //Add more here!
+        break;
       }
     case QNetworkReply::TimeoutError:
       {
@@ -84,6 +87,7 @@ void GSettingsDialog::parseFinish(QNetworkReply* reply)
       }
     default:
       {
+        emit loginResult(false, reply->errorString());
         break;
       }
   }
