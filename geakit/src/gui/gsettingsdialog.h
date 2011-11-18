@@ -2,6 +2,7 @@
 #define GEAKIT_GUI_GSETTINGDSIALOG_H
 
 #include <QDialog>
+#include <QString>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -9,25 +10,30 @@ class QAuthenticator;
 
 namespace Ui
 {
-    class GSettingsDialog;
+  class GSettingsDialog;
 }
 
 class GSettingsDialog :public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
-    public:
-        explicit GSettingsDialog(QWidget* parent = 0);
-        ~GSettingsDialog(){}
+  public:
+    explicit GSettingsDialog(QWidget* parent = 0);
+    ~GSettingsDialog(){}
 
-    private:
-        Ui::GSettingsDialog* ui;
-        QNetworkAccessManager* m_manager;
+  signals:
+    void loginResult(bool is_success, QString message);
 
-    private slots:
-        void onLoginButtonClicked();
-        void dispatch(QNetworkReply* reply); //根据reply 分配给不同的函数处理
-        void handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator);
+  private:
+    Ui::GSettingsDialog* ui;
+    QNetworkAccessManager* m_manager;
+
+  private slots:
+    void onLoginButtonClicked();
+    void onAccountSetted(QString text);
+    void handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator);
+    void processLoginResult(bool is_success, QString message);
+    void parseFinish(QNetworkReply* reply); //根据reply 分配给不同的函数处理
 };
 
 #endif

@@ -2,7 +2,6 @@
 
 #include "gsettingsdialog.h"
 
-#include <QString>
 #include <QUrl>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -14,18 +13,28 @@ const QString test_login_url = "https://api.github.com/user";
 GSettingsDialog::GSettingsDialog(QWidget* parent):QDialog(parent), ui(new Ui::GSettingsDialog)
 {
   ui->setupUi(this);
-    m_manager = new QNetworkAccessManager(this);
+  m_manager = new QNetworkAccessManager(this);
+
   connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(onLoginButtonClicked()));
-    connect(m_manager, SIGNAL(finished(QNetworkReply* reply)), this, SLOT(dispathc(QNetworkReply* reply)));
-    connect(m_manager, SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)), this, SLOT(handleUnAuth(QNetworkReply*, QAuthenticator*)));
+  connect(ui->passwordEdit, SIGNAL(textEdited(QString)), this, SLOT(onAccountSetted(QString)));
+  connect(m_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(parseFinish(QNetworkReply*)));
+  connect(m_manager, SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)), this, SLOT(handleUnAuth(QNetworkReply*, QAuthenticator*)));
+  connect(this, SIGNAL(loginResult(bool, QString)), this, SLOT(processLoginResult(bool, QString)));
 }
 
 void GSettingsDialog::onLoginButtonClicked()
 {
-    QUrl url(test_login_url);
-    QString userinfo =QString("%1:%2").arg(ui->usernameEdit->text()).arg(ui->passwordEdit->text());
-    url.setUserInfo(userinfo);
-    m_manager->get(QNetworkRequest(url));
+  ui->loginButton->setEnabled(false);
+  ui->usernameEdit->setEnabled(false);
+  ui->passwordEdit->setEnabled(false);
+  ui->loginStatusLabel->setText(tr("Login ..."));
+  m_manager->get(QNetworkRequest(QUrl(test_login_url)));
+}
+
+void GSettingsDialog::onAccountSetted(QString /*text*/)
+{
+  ui->loginButton->setText(tr("Test Login"));
+  ui->loginButton->setEnabled(true);
 }
 
 void GSettingsDialog::handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator)
@@ -37,17 +46,45 @@ void GSettingsDialog::handleUnAuth(QNetworkReply* reply, QAuthenticator* authent
   }
   else
   {
-        ui->loginStatusLabel->setText(tr("Login Failed!"));
-        ui->loginButton->setEnabled(true);
+    emit loginResult(false, reply->errorString());
   }
 }
 
-void GSettingsDialog::dispatch(QNetworkReply* reply)
+void GSettingsDialog::processLoginResult(bool is_success, QString message){
+  if(is_success){
+    ui->loginButton->setText(tr("Logged in"));
+    ui->usernameEdit->setEnabled(true);
+    ui->passwordEdit->setEnabled(true);
+    ui->loginStatusLabel->setText(tr("Login Successfully!"));
+  }
+  else{
+    ui->usernameEdit->setEnabled(true);
+    ui->passwordEdit->setEnabled(true);
+    ui->loginStatusLabel->setText(tr("Login Failed!%1").arg(message));
+  }
+}
+
+void GSettingsDialog::parseFinish(QNetworkReply* reply)
 {
-    QUrl url = reply->request().url();
-    if (url.path() == QUrl(test_login_url).path())
-    {
-        ui->loginStatusLabel->setText(tr("Login Successfully!"));
-        ui->loginButton->setEnabled(false);
-    }
+  QNetworkReply::NetworkError err = reply->error();
+  switch(err){
+    case QNetworkReply::NoError:
+      {
+        if(reply->url().path() == QUrl(test_login_url).path())
+          emit loginResult(true, reply->errorString());
+      }
+    case QNetworkReply::TimeoutError:
+      {
+        emit loginResult(false, reply->errorString());
+        break;
+      }
+    case QNetworkReply::AuthenticationRequiredError:
+      {
+        break;
+      }
+    default:
+      {
+        break;
+      }
+  }
 }
