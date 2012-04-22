@@ -214,7 +214,7 @@
            <item>
             <widget class="QPushButton" name="loginButton">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">

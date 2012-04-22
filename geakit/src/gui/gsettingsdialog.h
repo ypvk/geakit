@@ -27,12 +27,9 @@ class GSettingsDialog :public QDialog
   private:
     Ui::GSettingsDialog* ui;
     QNetworkAccessManager* m_manager;
-    bool m_toAuth;
 
   private slots:
     void onLoginButtonClicked();
-    void onAccountSetted(QString text);
-    void handleUnAuth(QNetworkReply* reply, QAuthenticator* authenticator);
     void processLoginResult(bool is_success, QString message);
     void parseFinish(QNetworkReply* reply); //根据reply 分配给不同的函数处理
 };
