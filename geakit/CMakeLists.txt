@@ -4,7 +4,7 @@ set(GEAKIT_VERSION_MAJOR 0)
 set(GEAKIT_VERSION_MINOR 1)
 set(GEAKIT_VERSION_RELEASE 1)
 
-include_directories(src ${LIBGIT2_INCLUDES} ${GSHELL_INCLUDES} ${QT_INCLUDES})
+include_directories(src ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
 
 #Build options
 option (BUILD_TESTS "Build Tests" OFF)
@@ -43,7 +43,7 @@ qt4_add_resources(GEAKIT_RCC_SRCS ${GEAKIT_RCCS})
 qt4_create_translation(GEAKIT_QMS ${GEAKIT_SRCS} ${GEAKITTSS})
 
 add_executable(geakit ${GEAKIT_SRCS} ${GEAKIT_MOC_SRCS} ${GEAKIT_RCC_SRCS} ${GEAKIT_QMS})
-target_link_libraries(geakit gshell ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTNETWORK_LIBRARY})
+target_link_libraries(geakit git2 ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTNETWORK_LIBRARY})
 
 if(BUILD_TESTS)
 endif()
