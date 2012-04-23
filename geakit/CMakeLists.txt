@@ -1,6 +1,6 @@
 project(geakit)
 
-include_directories(src ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
+include_directories(src ${CMAKE_CURRENT_BINARY_DIR} ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/version.h)
 
