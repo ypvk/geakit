@@ -4,7 +4,7 @@ set(GEAKIT_VERSION_MAJOR 0)
 set(GEAKIT_VERSION_MINOR 1)
 set(GEAKIT_VERSION_RELEASE 1)
 
-include_directories(src ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
+include_directories(src ${CMAKE_CURRENT_BINARY_DIR} ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
 
 #Build options
 option (BUILD_TESTS "Build Tests" OFF)
