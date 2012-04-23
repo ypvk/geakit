@@ -1,6 +1,7 @@
 #include <QApplication>
 
 #include "gui/gmainwindow.h"
+#include "version.h"
 
 int main(int argc, char *argv[])
 {
@@ -8,6 +9,7 @@ int main(int argc, char *argv[])
   QCoreApplication::setOrganizationName("Geakit Inc.");
   QCoreApplication::setOrganizationDomain("geakit.com");
   QCoreApplication::setApplicationName("Geakit Clinet");
+  QCoreApplication::setApplicationVersion(GEAKIT_VERSION);
   GMainWindow w;
   w.show();
   return app.exec();

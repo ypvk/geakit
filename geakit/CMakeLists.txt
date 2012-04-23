@@ -1,10 +1,8 @@
 project(geakit)
 
-set(GEAKIT_VERSION_MAJOR 0)
-set(GEAKIT_VERSION_MINOR 1)
-set(GEAKIT_VERSION_RELEASE 1)
-
 include_directories(src ${LIBGIT2_INCLUDES} ${QT_INCLUDES})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/version.h)
 
 #Build options
 option (BUILD_TESTS "Build Tests" OFF)
