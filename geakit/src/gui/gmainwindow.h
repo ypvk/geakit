@@ -2,6 +2,7 @@
 #define GEAKIT_GUI_GMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 
 class QMenu;
 class QAction;
@@ -22,6 +23,7 @@ class GMainWindow :public QMainWindow
     Ui::GMainWindow* ui;
     QMenu* editMenu;
     QAction* settingsAction;
+    QSettings settings;
   
   private slots:
     void onSettingsActionTriggered();
