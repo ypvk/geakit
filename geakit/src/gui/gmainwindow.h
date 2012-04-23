@@ -4,8 +4,12 @@
 #include <QMainWindow>
 #include <QSettings>
 
+#include <git2.h>
+
 class QMenu;
 class QAction;
+
+class GAccount;
 
 namespace Ui
 {
@@ -17,13 +21,17 @@ class GMainWindow :public QMainWindow
   Q_OBJECT
   public:
     explicit GMainWindow(QWidget* parent = 0);
-    ~GMainWindow(){}
+    ~GMainWindow();
 
   private:
     Ui::GMainWindow* ui;
-    QMenu* editMenu;
-    QAction* settingsAction;
-    QSettings settings;
+    QMenu* m_editMenu;
+    QAction* m_settingsAction;
+
+    QSettings m_settings;
+
+    git_config* m_config;
+    GAccount* m_account;
   
   private slots:
     void onSettingsActionTriggered();
@@ -31,6 +39,8 @@ class GMainWindow :public QMainWindow
   private:
     void setupMenus();
     void setupActions();
+    void loadSettings();
+    void saveSettings();
 };
 
 #endif

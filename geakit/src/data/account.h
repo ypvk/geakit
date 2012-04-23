@@ -1,3 +1,4 @@
+#ifndef GEAKIT_DATA_ACCOUNT_H
 #define GEAKIT_DATA_ACCOUNT_H
 
 #include <QString>
@@ -12,7 +13,7 @@ class GAccount
     void setUsername(QString username){m_username = username;}
     QString username(){return m_username;}
     void setPassword(QString password){m_password = password;}
-    QString password(){return m_pasword;}
+    QString password(){return m_password;}
     void setFullname(QString fullname){m_fullname = fullname;}
     QString fullname(){return m_fullname;}
     void setEmail(QString email){m_email = email;}

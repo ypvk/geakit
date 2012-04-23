@@ -16,6 +16,7 @@ set(GEAKIT_SRCS
 	src/gui/gmainwindow.cpp
 	src/gui/gsettingsdialog.cpp
 	src/api/gaccountapi.cpp
+	src/data/account.cpp
 	)
 
 set(GEAKIT_HEADERS
