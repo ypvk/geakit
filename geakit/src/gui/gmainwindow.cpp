@@ -23,9 +23,10 @@ GMainWindow::~GMainWindow(){
 
 void GMainWindow::onSettingsActionTriggered()
 {
-  GSettingsDialog* dlg = new GSettingsDialog(this);
+  GSettingsDialog* dlg = new GSettingsDialog(m_account, this);
   if(dlg->exec())
   {
+    m_account->copy(dlg->account());
   }
   delete dlg;
 }

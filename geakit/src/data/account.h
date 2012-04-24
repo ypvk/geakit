@@ -18,6 +18,7 @@ class GAccount
     QString fullname(){return m_fullname;}
     void setEmail(QString email){m_email = email;}
     QString email(){return m_email;}
+    void copy(GAccount* other);
 
   private:
     QString m_username;

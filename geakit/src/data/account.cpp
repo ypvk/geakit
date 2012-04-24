@@ -6,3 +6,10 @@ GAccount::GAccount(QString username, QString password, QString fullname, QString
   m_fullname = fullname;
   m_email = email;
 }
+
+void GAccount::copy(GAccount* other){
+  setUsername(other->username());
+  setPassword(other->password());
+  setFullname(other->fullname());
+  setEmail(other->email());
+}

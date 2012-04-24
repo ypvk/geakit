@@ -1,6 +1,7 @@
 #include "ui_gsettingsdialog.h"
 
 #include "gsettingsdialog.h"
+#include "data/account.h"
 
 #include <QUrl>
 #include <QNetworkAccessManager>
@@ -10,14 +11,23 @@
 
 const QString test_login_url = "https://api.github.com/user";
 
-GSettingsDialog::GSettingsDialog(QWidget* parent):QDialog(parent), ui(new Ui::GSettingsDialog)
+GSettingsDialog::GSettingsDialog(GAccount* account, QWidget* parent):QDialog(parent), ui(new Ui::GSettingsDialog)
 {
   ui->setupUi(this);
   m_manager = new QNetworkAccessManager(this);
+  ui->usernameEdit->setText(account->username());
+  ui->passwordEdit->setText(account->password());
+  ui->fullnameEdit->setText(account->fullname());
+  ui->emailEdit->setText(account->email());
+  m_account = new GAccount();
 
   connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(onLoginButtonClicked()));
   connect(m_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(parseFinish(QNetworkReply*)));
   connect(this, SIGNAL(loginResult(bool, QString)), this, SLOT(processLoginResult(bool, QString)));
+}
+
+GSettingsDialog::~GSettingsDialog(){
+  delete m_account;
 }
 
 void GSettingsDialog::onLoginButtonClicked()
@@ -65,4 +75,12 @@ void GSettingsDialog::parseFinish(QNetworkReply* reply)
         break;
       }
   }
+}
+
+GAccount* GSettingsDialog::account(){
+  m_account->setUsername(ui->usernameEdit->text());
+  m_account->setPassword(ui->passwordEdit->text());
+  m_account->setFullname(ui->fullnameEdit->text());
+  m_account->setEmail(ui->emailEdit->text());
+  return m_account;
 }

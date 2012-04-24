@@ -6,7 +6,8 @@
 
 class QNetworkAccessManager;
 class QNetworkReply;
-class QAuthenticator;
+
+class GAccount;
 
 namespace Ui
 {
@@ -18,8 +19,10 @@ class GSettingsDialog :public QDialog
   Q_OBJECT
 
   public:
-    explicit GSettingsDialog(QWidget* parent = 0);
-    ~GSettingsDialog(){}
+    explicit GSettingsDialog(GAccount* account, QWidget* parent = 0);
+    ~GSettingsDialog();
+
+    GAccount* account();
 
   signals:
     void loginResult(bool is_success, QString message);
@@ -27,6 +30,7 @@ class GSettingsDialog :public QDialog
   private:
     Ui::GSettingsDialog* ui;
     QNetworkAccessManager* m_manager;
+    GAccount* m_account;
 
   private slots:
     void onLoginButtonClicked();

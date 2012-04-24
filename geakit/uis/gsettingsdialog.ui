@@ -79,7 +79,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="nameEdit"/>
+               <widget class="QLineEdit" name="fullnameEdit"/>
               </item>
              </layout>
             </item>
@@ -198,10 +198,16 @@
            <item>
             <widget class="QLabel" name="loginStatusLabel">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>200</width>
+               <height>0</height>
+              </size>
              </property>
              <property name="text">
               <string/>
@@ -217,7 +223,7 @@
               <bool>true</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
