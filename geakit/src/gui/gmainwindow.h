@@ -8,6 +8,7 @@
 
 class QMenu;
 class QAction;
+class QCloseEvent;
 
 class GAccount;
 
@@ -22,6 +23,9 @@ class GMainWindow :public QMainWindow
   public:
     explicit GMainWindow(QWidget* parent = 0);
     ~GMainWindow();
+ 
+  protected:
+    void closeEvent(QCloseEvent *event); 
 
   private:
     Ui::GMainWindow* ui;

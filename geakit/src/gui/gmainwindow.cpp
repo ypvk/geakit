@@ -1,5 +1,6 @@
 #include <QMenu>
 #include <QAction>
+#include <QCloseEvent>
 
 #include "ui_gmainwindow.h"
 
@@ -69,4 +70,10 @@ void GMainWindow::saveSettings(){
   error = git_config_set_string(m_config, "user.name", m_account->fullname().toLocal8Bit().constData());
   error = git_config_set_string(m_config, "user.email", m_account->email().toLocal8Bit().constData());
   //TODO do something if error occured
+}
+
+void GMainWindow::closeEvent(QCloseEvent *event)
+{
+  saveSettings();
+  event->accept();
 }
