@@ -17,12 +17,20 @@ set(GEAKIT_SRCS
 	src/gui/gsettingsdialog.cpp
 	src/api/gaccountapi.cpp
 	src/data/account.cpp
+	src/gui/gprojectdialog.cpp
+	src/gui/gcodeview.cpp
+	src/gui/gcommitview.cpp
+	src/gui/gbranchview.cpp
 	)
 
 set(GEAKIT_HEADERS
 	src/gui/gmainwindow.h
 	src/gui/gsettingsdialog.h
 	src/api/gaccountapi.h
+	src/gui/gprojectdialog.h
+	src/gui/gcodeview.h
+	src/gui/gcommitview.h
+	src/gui/gbranchview.h
 	)
 
 set(GEAKIT_UIS

@@ -4,8 +4,10 @@
 
 #include "ui_gmainwindow.h"
 
+#include "gprojectdialog.h"
 #include "gmainwindow.h"
 #include "gsettingsdialog.h"
+#include "gprojectdialog.h"
 
 #include "data/account.h"
 
@@ -31,6 +33,12 @@ void GMainWindow::onSettingsActionTriggered()
   }
   delete dlg;
 }
+void GMainWindow::onProjectActionTriggered()
+{
+  GProjectDialog* dlg = new GProjectDialog(this, 0);
+  dlg->exec();
+  delete dlg;
+}
 
 void GMainWindow::setupMenus()
 {
@@ -45,6 +53,12 @@ void GMainWindow::setupActions()
   m_settingsAction->setShortcut(Qt::CTRL + Qt::Key_Comma);
   m_settingsAction->setStatusTip(tr("Settings of Geakit Clinet"));
   connect(m_settingsAction, SIGNAL(triggered()), this, SLOT(onSettingsActionTriggered()));
+
+  m_projectAction = new QAction(tr("Project"), this);
+  m_projectAction->setIcon(QIcon(":icons/action_project.png"));
+  m_projectAction->setShortcut(Qt::CTRL + Qt::Key_P);
+  m_projectAction->setStatusTip(tr("Project Dialog"));
+  connect(m_projectAction, SIGNAL(triggered()), this, SLOT(onProjectActionTriggered()));
 }
 
 void GMainWindow::loadSettings(){

@@ -6,6 +6,7 @@
 
 #include <git2.h>
 
+
 class QMenu;
 class QAction;
 class QCloseEvent;
@@ -32,6 +33,7 @@ class GMainWindow :public QMainWindow
     QMenu* m_editMenu;
     QAction* m_settingsAction;
 
+    QAction* m_projectAction;
     QSettings m_settings;
 
     git_config* m_config;
@@ -40,6 +42,7 @@ class GMainWindow :public QMainWindow
   private slots:
     void onSettingsActionTriggered();
 
+    void onProjectActionTriggered();
   private:
     void setupMenus();
     void setupActions();
