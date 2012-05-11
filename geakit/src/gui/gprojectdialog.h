@@ -12,6 +12,8 @@ class GProjectDialog : public QDialog
   public:
     explicit GProjectDialog(QWidget* parent = 0, git_repository* m_repos = 0);
     ~GProjectDialog();
+  public slots:
+    void onBranchViewUpdate();
   private:
     git_repository* m_repos;
     QTabWidget* m_projectTab;

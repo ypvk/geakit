@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>html_files/commit_end.html</file>
+        <file>html_files/commit_head.html</file>
+		<file>html_files/commit_unit.html</file>
+		<file>icons/dir.png</file>
+		<file>icons/txt.png</file>
+    </qresource>
+</RCC>

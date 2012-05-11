@@ -44,6 +44,7 @@ void GMainWindow::setupMenus()
 {
   m_editMenu = menuBar()->addMenu(tr("&Edit"));
   m_editMenu->addAction(m_settingsAction);
+  m_editMenu->addAction(m_projectAction);
 }
 
 void GMainWindow::setupActions()
