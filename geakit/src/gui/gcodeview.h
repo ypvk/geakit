@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <git2.h>
 #include <QDir>
+#include <QSettings>
+
 class QTreeWidget;
 class QPushButton;
 class QTreeWidgetItem;
@@ -28,14 +30,16 @@ class GCodeView : public QWidget
     void onItemDoubleCilcked(QTreeWidgetItem* item, int column);
     void onItemClicked(QTreeWidgetItem* item, int column);
   private:
-    git_repository* m_repos;
+    git_repository* m_repos;//repository
     QTreeWidget* m_fileList;
     QPushButton* m_gitAddButton;
     QPushButton* m_gitRmButton;
     QPushButton* m_gitCommitButton;
-    QString m_workdirRoot;
-    QString m_tmpRoot;
-    GitCommand* m_command;
-    QList<QTreeWidgetItem*> m_selectedItems;
+    QString m_workdirRoot;//repos root
+    QString m_tmpRoot;//current dir
+    GitCommand* m_command;//command to do the git command
+    QList<QTreeWidgetItem*> m_selectedItems;//selected items
+    QString m_commitOid;//head commit oid string
+    QSettings m_setting;//settings to save the modified tree
 };
 #endif
