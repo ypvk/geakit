@@ -155,13 +155,13 @@ void GCodeView::gitAdd() {
   git_index* m_index;
   int error;
   error = git_repository_index(&m_index, m_repos);
-  
   QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
   while(it != m_selectedItems.end()) {
     //first get the path
     char* path;
     if (m_tmpRoot == "") {
       QString filePath = (*it++)->text(0);
+      qDebug() << filePath;
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
     }
@@ -173,13 +173,14 @@ void GCodeView::gitAdd() {
     unsigned int stage;
     int error;
     error = git_status_file(&stage, m_repos, path);
-    error = git_index_add(m_index, path, stage);
+    error = git_index_add(m_index, path, (GIT_IDXENTRY_ADDED & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT);
     if (error < GIT_SUCCESS)qDebug() << "add failue";
     error = git_index_write(m_index);
     delete[] path;
-  }
-  
-   git_index_free(m_index);
+  } 
+  git_index_free(m_index); 
+  QDir dir(m_workdirRoot + m_tmpRoot);
+  updateView(dir);
 }
 void GCodeView::gitRm() {
 }
