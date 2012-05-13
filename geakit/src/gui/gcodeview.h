@@ -39,6 +39,7 @@ class GCodeView : public QWidget
     QString m_tmpRoot;//current dir
     GitCommand* m_command;//command to do the git command
     QList<QTreeWidgetItem*> m_selectedItems;//selected items
+    QStringList m_filesToDelete; //file delete after commit
     QString m_commitOid;//head commit oid string
     QSettings m_setting;//settings to save the modified tree
 };

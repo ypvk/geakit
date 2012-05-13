@@ -12,6 +12,9 @@
 #include <string>
 #include <iostream>
 
+/*************here define a new status that file delete in the index, but still on the disk******/
+#define MY_GIT_STATUS_DELETED   12
+
 GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent) 
 {
   m_repos = repos;
@@ -47,6 +50,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 
   m_command = new GitCommand(this, m_workdirRoot);
   /****************end gui init*************************/
+  /**********************index test********************
   git_index* index;
   git_index_entry* entry;
 
@@ -72,12 +76,11 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
    // qDebug() << entry->file_size;
   }
   git_index_free(index);
-
-  /******************test the odb and the tree*************************/
+**********************************end*****************/
   git_tree* head_tree;
   //get the head commit
   git_reference* head; 
-  error = git_repository_head(&head, m_repos);
+  int error = git_repository_head(&head, m_repos);
   const git_oid* refoid = git_reference_oid(head);
   char headCommitId[41] = {0};
   git_oid_fmt(headCommitId, refoid);
@@ -151,7 +154,7 @@ void GCodeView::gitAdd() {
   emit reposDataChanged();
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
-  */
+  ******************************************************************************************/
   git_index* m_index;
   int error;
   error = git_repository_index(&m_index, m_repos);
@@ -166,13 +169,12 @@ void GCodeView::gitAdd() {
       strcpy(path, filePath.toLocal8Bit().constData());
     }
     else {
-      QString filePath = m_tmpRoot + "/" + (*it)->text(0);
+      QString filePath = m_tmpRoot + "/" + (*it++)->text(0);
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
   }
-    unsigned int stage;
+    qDebug() << "selected path is " << path;
     int error;
-    error = git_status_file(&stage, m_repos, path);
     error = git_index_add(m_index, path, (GIT_IDXENTRY_ADDED & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT);
     if (error < GIT_SUCCESS)qDebug() << "add failue";
     error = git_index_write(m_index);
@@ -183,10 +185,44 @@ void GCodeView::gitAdd() {
   updateView(dir);
 }
 void GCodeView::gitRm() {
+  /************delete first the thing in the entry, after commit delete the entry int the working dir***********/
+  git_index* m_index;
+  int error;
+  error = git_repository_index(&m_index, m_repos);
+  QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
+  while(it != m_selectedItems.end()) {
+    //first get the path
+    char* path;
+    if (m_tmpRoot == "") {
+      QString filePath = (*it++)->text(0);
+      qDebug() << filePath;
+      path = new char[filePath.size() + 1];
+      strcpy(path, filePath.toLocal8Bit().constData());
+    }
+    else {
+      QString filePath = m_tmpRoot + "/" + (*it++)->text(0);
+      path = new char[filePath.size() + 1];
+      strcpy(path, filePath.toLocal8Bit().constData());
+  }
+    qDebug() << "selected path is " << path;
+    int error;
+    int position;
+    position = git_index_find(m_index, path);
+    qDebug() << "position is: " << position;
+    if (position >= 0) {
+      error = git_index_remove(m_index, position);
+      if (error < GIT_SUCCESS)qDebug() << "add failue";
+    }
+    error = git_index_write(m_index);
+    delete[] path;
+  } 
+  git_index_free(m_index); 
+  QDir dir(m_workdirRoot + m_tmpRoot);
+  updateView(dir);
 }
 void GCodeView::gitCommit() {
   //first get the new tree
-  /************test index => tree*****************/
+  /************index => tree*****************/
   int error;
   git_oid oid;
   git_index* m_index;
@@ -226,12 +262,28 @@ void GCodeView::gitCommit() {
   char oidStr[41] = {0};
   git_oid_fmt(oidStr, &oid);
   qDebug() << "commit oid is: " << oidStr;
+  /************update the commit oid*****************/
+  m_commitOid = QString(oidStr);
+  /******************end****************************/
 
+  git_index_free(m_index);
+  git_index_write(m_index);
   git_config_free(m_config);
   git_signature_free(author_signature);
   git_commit_free(m_commit);
   git_index_free(m_index);
   git_tree_free(m_tree);  
+  //update the view(status)
+  /** now delete the file on the disk if the file is deleted in the indexed**/
+  QDir dirDelete(m_workdirRoot);
+  if (0 != m_filesToDelete.size() ) {
+    QStringList::const_iterator it = m_filesToDelete.constBegin();
+    while (it != m_filesToDelete.constEnd()) {
+      dirDelete.remove(*it++);
+    }
+ }
+  QDir dir(m_workdirRoot + m_tmpRoot);
+  updateView(dir);
 }
 void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
   QString name = item->text(3);
@@ -257,6 +309,7 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
 void GCodeView::updateView(QDir& dir) {
   m_fileList->clear();
   m_selectedItems.clear();
+  m_filesToDelete.clear();
   if (m_tmpRoot == "") {
     dir.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
   }
@@ -274,7 +327,6 @@ void GCodeView::updateView(QDir& dir) {
       dirItem->setIcon(0, dirIcon);
       dirItem->setText(3, tr("dir"));
       dirItem->setCheckState(0, Qt::Unchecked);
-      m_fileList->addTopLevelItem(dirItem);
     }
   }
   dir.setFilter(QDir::Files);
@@ -313,16 +365,20 @@ void GCodeView::updateView(QDir& dir) {
           fileItem->setText(2, tr("untacked"));
           break;
         case GIT_STATUS_WT_MODIFIED :
-          fileItem->setText(2, tr("Modifiled"));
+          fileItem->setText(2, tr("Modifiled, not update"));
           break;
         case GIT_STATUS_CURRENT :
           fileItem->setText(2, tr("Current"));
           break;
         case GIT_STATUS_INDEX_NEW :
-          fileItem->setText(2, tr("index new"));
+          fileItem->setText(2, tr("new file, not commit"));
           break;
         case GIT_STATUS_INDEX_MODIFIED :
-          fileItem->setText(2, tr("index modifiled"));
+          fileItem->setText(2, tr("modifiled, not commit"));
+          break;
+        case MY_GIT_STATUS_DELETED :
+          fileItem->setText(2, tr("deleted, not commit"));
+          m_filesToDelete << path;
           break;
       }
       delete[] path;
