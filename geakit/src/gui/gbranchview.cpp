@@ -77,6 +77,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
 
   QString cmd = "git remote";
   m_command->execute(cmd);
+  if ("" != m_command->output()) {
   QStringList remoteNames =  (m_command->output()).trimmed().split("\n");
   QStringList::const_iterator it = remoteNames.constBegin();
   for (; it != remoteNames.constEnd(); it++)
@@ -120,6 +121,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
     }
     git_remote_free(m_remote);
     ******************************************************************************/
+  }
   }
 
   m_mainArea->setWidget(mainWidget);

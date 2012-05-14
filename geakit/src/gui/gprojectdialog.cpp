@@ -17,6 +17,7 @@ GProjectDialog::GProjectDialog(QWidget* parent, git_repository* m_repos) : QDial
   GBranchView* branchView = new GBranchView(this, m_repos);
 
   connect(branchView, SIGNAL(renewObject()), this, SLOT(onBranchViewUpdate()));
+  connect(codeView, SIGNAL(newCommit()), commitView, SLOT(updateCommitView()));
 
   m_projectTab->addTab(codeView, tr("Code"));
   m_projectTab->addTab(commitView,tr("Commit"));

@@ -14,8 +14,8 @@ GPatchView::GPatchView(QWidget* parent,git_repository* repo) : QWidget(parent) {
   connect(m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(processError(QProcess::ProcessError)));
   connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
 }
-void GPatchView::setCommit(git_commit* commit) {
-  m_commit = commit;
+void GPatchView::setCommitOid(const QString& commitOid) {
+  m_commitOid = commitOid;
 }
 void GPatchView::redFromStdOut() {
   m_content = m_process->readAllStandardOutput();
@@ -51,16 +51,10 @@ void GPatchView::execute()
   QStringList argList;
   argList << "log" << "-1" << "-p";
 
-  const git_oid* oid = git_commit_id(m_commit);
-  char sha[40];
-  git_oid_fmt(sha, oid);
-  qDebug() << sha;
-  QString qSha(sha);
-  argList << qSha;
+  argList << m_commitOid;
 
   QString path(git_repository_workdir(m_repo));  
 
-  qDebug() << path;
   m_process->setWorkingDirectory(path);
   QStringList env = QProcess::systemEnvironment();
   env << "GIT_FLUSH=0";//skip the fflush() in the 'git_log'

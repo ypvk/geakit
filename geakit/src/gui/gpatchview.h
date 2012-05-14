@@ -14,7 +14,7 @@ class GPatchView : public QWidget
   public:
     explicit GPatchView (QWidget* parent = 0,git_repository* repo = 0);
     ~GPatchView();
-    void setCommit(git_commit* commit);
+    void setCommitOid(const QString& commitOid);
     void execute();
   public slots:
     void redFromStdOut();
@@ -22,7 +22,8 @@ class GPatchView : public QWidget
     void processError(QProcess::ProcessError error);
     void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
   private:
-    git_commit* m_commit;
+   // git_commit* m_commit;
+    QString m_commitOid;
     git_repository* m_repo;
     QProcess* m_process;
     QString m_content;

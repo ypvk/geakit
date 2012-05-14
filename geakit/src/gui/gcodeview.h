@@ -10,6 +10,7 @@ class QTreeWidget;
 class QPushButton;
 class QTreeWidgetItem;
 class GitCommand;
+class GCommitDialog;
 
 class GCodeView : public QWidget
 {
@@ -19,6 +20,7 @@ class GCodeView : public QWidget
     ~GCodeView();
   signals:
     void reposDataChanged();
+    void newCommit();
   private:
 //    void searchFiles();
   private:

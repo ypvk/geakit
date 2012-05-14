@@ -27,6 +27,7 @@ set(GEAKIT_SRCS
 	src/gui/gpatchview.cpp
 	src/gui/gitcommand.cpp
 	src/gui/gbutton.cpp
+	src/gui/gcommitdialog.cpp
 	)
 
 set(GEAKIT_HEADERS
@@ -40,6 +41,7 @@ set(GEAKIT_HEADERS
 	src/gui/gpatchview.h
 	src/gui/gitcommand.h
 	src/gui/gbutton.h
+	src/gui/gcommitdialog.h
 	)
 
 set(GEAKIT_UIS
