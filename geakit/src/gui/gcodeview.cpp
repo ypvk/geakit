@@ -1,5 +1,6 @@
 #include "gcodeview.h"
 #include "gitcommand.h"
+#include "gcommitdialog.h"
 
 #include <QHeaderView>
 #include <QDebug>
@@ -221,6 +222,24 @@ void GCodeView::gitRm() {
   updateView(dir);
 }
 void GCodeView::gitCommit() {
+  //get commit message
+  QString commitMessage;
+  GCommitDialog* dlg = new GCommitDialog;
+  if (dlg->exec()) {
+    if ("" == dlg->message()) {
+      qDebug() << "empty message";
+      delete dlg;
+      return;
+    }
+    commitMessage = dlg->message();
+    delete dlg;
+  }
+  else {
+    qDebug() << "unaccepted quit the commit!";
+    delete dlg;
+    return;
+  }
+  qDebug() << QString("messags is %1").arg(commitMessage);
   //first get the new tree
   /************index => tree*****************/
   int error;
@@ -254,7 +273,7 @@ void GCodeView::gitCommit() {
       author_signature, 
       author_signature,
       NULL, 
-      "first commit", 
+      commitMessage.toLocal8Bit().constData(), 
       m_tree, 
       1, 
       parents 
@@ -284,6 +303,8 @@ void GCodeView::gitCommit() {
  }
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
+  /*********emit newCommit() signal*****************/
+  emit newCommit();
 }
 void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
   QString name = item->text(3);

@@ -22,8 +22,9 @@ class GCommitView : public QWidget
     ~GCommitView();
   public slots:
     void onLinkClicked(const QUrl& url);
+    void updateCommitView();
   private:
-    void init();
+   // void init();
     QString buildEachElement(git_commit* commit, git_oid* oid);
     void setContents(const QString& html);
     void setHtmlHead(QString& html);
@@ -40,7 +41,7 @@ class GCommitView : public QWidget
   //  QSCrollArea* m_viewArea;
    // QList<QFrame*> m_itemsView;
    // QList<CommitItem*> m_commitItems;
-    QList<git_commit*> m_commitList;
+   // QList<git_commit*> m_commitList;
 };
 /*
 class CommitItem : public QWidget
