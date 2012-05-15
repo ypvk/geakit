@@ -135,12 +135,20 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
 GBranchView::~GBranchView() {
 }
 void GBranchView::onChangeButtonClicked(int id) {
+  /*******************relize it using QProcess********************
   QString branchName = branchList[id].split("/").last();
 
   QString cmd = "git checkout " + branchName;
 //  qDebug() <<cmd;
   m_command->execute(cmd);
   //qDebug() << m_command->output();
+  ************************end*********************************/
+  /**************use libgit2 to relize it,(rewrite the HEAD symbolic********************/
+  git_reference* newHead;
+  int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", branchList[id].toLocal8Bit().constData(), 1);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error change the branch";
+  }  
   emit renewObject();
 }
 void GBranchView::onMergeButtonClicked(int id) {

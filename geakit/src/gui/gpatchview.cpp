@@ -1,6 +1,7 @@
 #include "gpatchview.h"
 #include <QTextEdit>
 #include <QDebug>
+#include <QHBoxLayout>
 
 GPatchView::GPatchView(QWidget* parent,git_repository* repo) : QWidget(parent) {
  // m_commit = commit;
@@ -8,6 +9,9 @@ GPatchView::GPatchView(QWidget* parent,git_repository* repo) : QWidget(parent) {
   m_process = new QProcess(this);
   m_text = new QTextEdit(this);
   m_text->setReadOnly(true);
+  QHBoxLayout* viewLayout = new QHBoxLayout(this);
+  viewLayout->addWidget(m_text);
+  setLayout(viewLayout);
 
   connect(m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(redFromStdOut()));
   connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(redFromStdErr()));
