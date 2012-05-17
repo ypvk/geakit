@@ -10,6 +10,8 @@
 class QMenu;
 class QAction;
 class QCloseEvent;
+class QListWidget;
+class QPushButton;
 
 class GAccount;
 
@@ -38,16 +40,28 @@ class GMainWindow :public QMainWindow
 
     git_config* m_config;
     GAccount* m_account;
+    
+    QListWidget* m_projectsOnline;
+    QListWidget* m_projectsLocal;
+
+    QPushButton* m_addButton;
+    QPushButton* m_rmButton;
+
   
   private slots:
     void onSettingsActionTriggered();
 
     void onProjectActionTriggered();
+    void addProjectToLocal();
+    void removeProjectInLocal();
+    void openProject(QListWidget* project);
   private:
     void setupMenus();
     void setupActions();
     void loadSettings();
     void saveSettings();
+    void buildGui();
+    void initProjectItems();
 };
 
 #endif

@@ -14,8 +14,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 set(GEAKIT_SRCS
-	#src/main.cpp
-	src/test1.cpp
+	src/main.cpp
+	#src/test1.cpp
 	src/gui/gmainwindow.cpp
 	src/gui/gsettingsdialog.cpp
 	src/api/gaccountapi.cpp

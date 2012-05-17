@@ -1,6 +1,12 @@
 #include <QMenu>
 #include <QAction>
 #include <QCloseEvent>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QListWidget>
+#include <QGroupBox>
+#include <QDebug>
 
 #include "ui_gmainwindow.h"
 
@@ -17,6 +23,8 @@ GMainWindow::GMainWindow(QWidget* parent):QMainWindow(parent), ui(new Ui::GMainW
   setupActions();
   setupMenus();
   loadSettings();
+  buildGui();
+  initProjectItems();
 }
 
 GMainWindow::~GMainWindow(){
@@ -91,4 +99,67 @@ void GMainWindow::closeEvent(QCloseEvent *event)
 {
   saveSettings();
   event->accept();
+}
+void GMainWindow::buildGui() {
+  m_projectsOnline = new QListWidget(this);
+  m_projectsLocal = new QListWidget(this);
+
+  m_addButton = new QPushButton(tr("add"), this);
+  m_rmButton = new QPushButton(tr("romove"), this);
+
+  QHBoxLayout* mainLayout = new QHBoxLayout;
+  QVBoxLayout* buttonLayout = new QVBoxLayout;
+
+  buttonLayout->addWidget(m_addButton);
+  buttonLayout->addWidget(m_rmButton);
+
+  QGroupBox* projectsOnlineBox = new QGroupBox(this);
+  projectsOnlineBox->setTitle(tr("projectsOnLine"));
+  QHBoxLayout* groupLayout = new QHBoxLayout;
+  groupLayout->addWidget(m_projectsOnline);
+  projectsOnlineBox->setLayout(groupLayout);
+
+  QGroupBox* projectsLocalBox = new QGroupBox(this);
+  projectsLocalBox->setTitle(tr("projectsLocal"));
+  QHBoxLayout* groupLayout1 = new QHBoxLayout;
+  groupLayout1->addWidget(m_projectsLocal);
+  projectsLocalBox->setLayout(groupLayout1);
+
+  mainLayout->addWidget(projectsOnlineBox);
+  mainLayout->addLayout(buttonLayout);
+  mainLayout->addWidget(projectsLocalBox);
+  
+  QWidget* centralWidget = new QWidget(this);
+  centralWidget->setLayout(mainLayout);
+  setCentralWidget(centralWidget);
+  
+  connect(m_addButton, SIGNAL(clicked()), this, SLOT(addProjectToLocal()));
+  connect(m_rmButton, SIGNAL(clicked()), this, SLOT(removeProjectInLocal()));
+
+  connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(openProject(QListWidget*)));
+
+}
+void GMainWindow::initProjectItems() {
+  QListWidgetItem* projectItem = new QListWidgetItem(m_projectsOnline);
+  projectItem->setText(tr("project1"));
+  QListWidgetItem* projectItem1 = new QListWidgetItem(m_projectsOnline);
+  projectItem1->setText(tr("project3"));
+}
+void GMainWindow::addProjectToLocal() {
+  QList<QListWidgetItem* > selectedProjects = m_projectsOnline->selectedItems();
+  QList<QListWidgetItem*>::iterator it = selectedProjects.begin();
+  while (it != selectedProjects.end()) {
+    QListWidgetItem* item = m_projectsOnline->takeItem(m_projectsOnline->row(*it));
+    m_projectsLocal->addItem(item);
+    it++;
+  }
+}
+void GMainWindow::removeProjectInLocal() {
+  QList<QListWidgetItem* > selectedProjects = m_projectsLocal->selectedItems();
+  QList<QListWidgetItem* >::iterator it = selectedProjects.begin();
+  while ( it != selectedProjects.end()) {
+    QListWidgetItem* item = m_projectsLocal->takeItem(m_projectsLocal->row(*it));
+    m_projectsOnline->addItem(item);
+    it++;
+  }
 }
