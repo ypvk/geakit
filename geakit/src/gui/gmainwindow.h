@@ -12,6 +12,13 @@ class QAction;
 class QCloseEvent;
 class QListWidget;
 class QPushButton;
+class QToolBar;
+class QWidget;
+class QStackedWidget;
+//class GCommitView;
+//class GCodeView;
+//class GBranchView;
+class QListWidgetItem;
 
 class GAccount;
 
@@ -35,7 +42,6 @@ class GMainWindow :public QMainWindow
     QMenu* m_editMenu;
     QAction* m_settingsAction;
 
-    QAction* m_projectAction;
     QSettings m_settings;
 
     git_config* m_config;
@@ -47,14 +53,38 @@ class GMainWindow :public QMainWindow
     QPushButton* m_addButton;
     QPushButton* m_rmButton;
 
+    QToolBar* m_toolBar;
+    QAction* m_projectsAction;
+    QAction* m_codeViewAction;
+    QAction* m_branchViewAction;
+    QAction* m_commitViewAction;
+    
+    QStackedWidget* m_widgets;
+    QWidget* m_projectsWidget;
+    QWidget* m_codeViewWidget;
+    QWidget* m_branchViewWidget;
+    QWidget* m_commitViewWidget; 
+
+    //each view (real widget)
+//    GCodeView* m_codeView;
+//    GCommitView* m_commitView;
+//    GBranchView* m_branchView;
+    
+    git_repository* m_currentRepo;
   
   private slots:
     void onSettingsActionTriggered();
 
-    void onProjectActionTriggered();
+    void onProjectsActionTriggered();
+    void onCodeViewActionTriggered();
+    void onBranchViewActionTriggered();
+    void onCommitViewActionTriggered();
+
     void addProjectToLocal();
     void removeProjectInLocal();
-    void openProject(QListWidget* project);
+    void openProject(QListWidgetItem* project);
+    void updateView();
+    void onBranchViewChanged();
   private:
     void setupMenus();
     void setupActions();
@@ -62,6 +92,7 @@ class GMainWindow :public QMainWindow
     void saveSettings();
     void buildGui();
     void initProjectItems();
+    void setupToolBar();
 };
 
 #endif

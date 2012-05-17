@@ -5,5 +5,11 @@
 		<file>html_files/commit_unit.html</file>
 		<file>icons/dir.png</file>
 		<file>icons/txt.png</file>
+		<file>icons/right.png</file>
+		<file>icons/left.png</file>
+		<file>icons/project.png</file>
+		<file>icons/codeView.png</file>
+		<file>icons/branchView.png</file>
+		<file>icons/commitView.png</file>
     </qresource>
 </RCC>
