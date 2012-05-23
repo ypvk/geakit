@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QLabel>
 
 #include <string>
 #include <iostream>
@@ -20,18 +21,23 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 {
   m_repos = repos;
   m_fileList = new QTreeWidget(this);
+  m_currentDir = new QLabel(this);
   m_gitAddButton = new QPushButton(tr("Add"), this);
   m_gitRmButton = new QPushButton(tr("Remove"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
 
   QHBoxLayout* mainLayout = new QHBoxLayout(this);
   QVBoxLayout* buttonLayout = new QVBoxLayout;
+  QVBoxLayout* fileLayout = new QVBoxLayout;
+
+  fileLayout->addWidget(m_currentDir);
+  fileLayout->addWidget(m_fileList);
 
   buttonLayout->addWidget(m_gitAddButton);
   buttonLayout->addWidget(m_gitRmButton);
   buttonLayout->addWidget(m_gitCommitButton);
   buttonLayout->addStretch(0.5);
-  mainLayout->addWidget(m_fileList);
+  mainLayout->addLayout(fileLayout);
   mainLayout->addLayout(buttonLayout);
   connect(m_gitAddButton, SIGNAL(clicked()), this, SLOT(gitAdd()));
   connect(m_gitRmButton, SIGNAL(clicked()), this, SLOT(gitRm()));
@@ -58,7 +64,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   git_repository_index(&index, m_repos);
 
   int error;
-  //TODO something if error
+:  //TODO something if error
   error =  git_index_read(index);
   int ecount = git_index_entrycount(index);
 
@@ -333,9 +339,11 @@ void GCodeView::updateView(QDir& dir) {
   m_filesToDelete.clear();
   if (m_tmpRoot == "") {
     dir.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    m_currentDir->setText(tr("/"));
   }
   else {
     dir.setFilter(QDir::NoDot | QDir::AllDirs);
+    m_currentDir->setText("/" + m_tmpRoot);
   } 
   QStringList dirList = dir.entryList();
   QIcon dirIcon(tr(":/icons/dir.png"));
@@ -403,7 +411,7 @@ void GCodeView::updateView(QDir& dir) {
           break;
       }
       delete[] path;
-      /*******************here we can't get tree and the item reluze later****************
+      /*******************here we can't get tree and the item realize later****************
       //get the index and the property
       git_index* fileIndex;
       qDebug() << "index is :" << m_workdirRoot + m_tmpRoot;

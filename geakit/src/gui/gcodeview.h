@@ -9,6 +9,7 @@
 class QTreeWidget;
 class QPushButton;
 class QTreeWidgetItem;
+class QLabel;
 class GitCommand;
 class GCommitDialog;
 
@@ -44,5 +45,6 @@ class GCodeView : public QWidget
     QStringList m_filesToDelete; //file delete after commit
     QString m_commitOid;//head commit oid string
     QSettings m_setting;//settings to save the modified tree
+    QLabel* m_currentDir;
 };
 #endif

@@ -195,7 +195,7 @@ void GMainWindow::initProjectItems() {
   QListWidgetItem* projectItem = new QListWidgetItem(m_projectsOnline);
   projectItem->setText(tr("new_git"));
   QListWidgetItem* projectItem1 = new QListWidgetItem(m_projectsOnline);
-  projectItem1->setText(tr("project3"));
+  projectItem1->setText(tr("git_myself"));
 }
 void GMainWindow::addProjectToLocal() {
   /*************test, projects' name get from the settings*****************/
@@ -204,7 +204,7 @@ void GMainWindow::addProjectToLocal() {
   while (it != selectedProjects.end()) {
     //QListWidgetItem* item = m_projectsOnline->takeItem(m_projectsOnline->row(*it));
     QString projectName = (*it)->text();
-    QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping"));
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping/yp/git"));
     QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
     item->setText(dirName + "/" + projectName);
     m_projectsLocal->addItem(item);

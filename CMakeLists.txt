@@ -7,9 +7,11 @@ set(GEAKIT_VERSION_MINOR 1)
 set(GEAKIT_VERSION_RELEASE 1)
 set(GEAKIT_VERSION "${GEAKIT_VERSION_MAJOR}.${GEAKIT_VERSION_MINOR}.${GEAKIT_VERSION_RELEASE}")
 
-find_package(Qt4 4.5 REQUIRED)
+find_package(Qt4 4.5.0 REQUIRED)
 
 set(LIBGIT2_INCLUDES ${CMAKE_SOURCE_DIR}/libgit2/include)
+set(QJSON_INCLUDES ${CMAKE_SOURCE_DIR}/qjson/src)
 
 add_subdirectory(libgit2)
 add_subdirectory(geakit)
+add_subdirectory(qjson)
