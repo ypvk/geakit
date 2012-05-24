@@ -92,12 +92,16 @@ if(BUILD_TESTS)
 		src/gui/gcommitdialog.cpp
 		)
 	TEST(test2 ${TEST_SRC})
+	##test_API
 	set(TEST_API_SRC
+		tests/test_API.cpp
 		src/api/gaccountapi.cpp
 		)
-	qt4_wrap_cpp(TEST_MOC_SRC 
+	set(TEST_HEADS
 		src/api/gaccountapi.h
 		)
+	qt4_wrap_cpp(TEST_MOC_SRC ${TEST_HEADS})
+		
 	add_executable(test_api ${TEST_API_SRC} ${TEST_MOC_SRC})
-	target_link_libraries(test_api git2 qjson ${QT_LIBRARIES})
+	target_link_libraries(test_api git2 qjson ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTNETWORK_LIBRARY})
 endif()
