@@ -1,7 +1,8 @@
 #include <QNetworkAccessManager>
-#include <parser.h>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QTimer>
-#include <serializer>
+#include <QDebug>
 #include "gaccountapi.h"
 
 const QString url = "https://api.github.com/user";//api url
@@ -18,20 +19,20 @@ GAccountAPI::GAccountAPI(QNetworkAccessManager* manager)
   connect(m_manager, SIGNAL(finished(QNetWorkReply*)), this, SLOT(parseFinished(QNetWorkReply*)));
     
 }
-void GAccountAPI::parseFinished(QNetWorkReply* reply) {
+void GAccountAPI::parseFinished(QNetworkReply* reply) {
     
 
 }
 
 void GAccountAPI::startConnect() {
   m_timeout->start(timeToRun); 
-  QNetWorkRequest request = QNetWorkRequest(QUrl(url));
+  QNetworkRequest request = QNetworkRequest(QUrl(url));
   
   m_manager->get(request);
 }
 void GAccountAPI::onTimeout() {
   //todo something if the time is out
-  m_manager->setNetworkAccessible(QNetWorkAccessManager::NotAccessible);
+  m_manager->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
   qDebug() << "can't get api message";
 }
 void GAccountAPI::setNetManager(QNetworkAccessManager* manager)
