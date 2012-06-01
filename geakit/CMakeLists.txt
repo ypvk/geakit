@@ -19,6 +19,7 @@ set(GEAKIT_SRCS
 	src/gui/gmainwindow.cpp
 	src/gui/gsettingsdialog.cpp
 	src/api/gaccountapi.cpp
+	src/api/grepositoryapi.cpp
 	src/data/account.cpp
 	src/gui/gprojectdialog.cpp
 	src/gui/gcodeview.cpp
@@ -28,12 +29,14 @@ set(GEAKIT_SRCS
 	src/gui/gitcommand.cpp
 	src/gui/gbutton.cpp
 	src/gui/gcommitdialog.cpp
+	src/gui/gbranchnamedialog.cpp
 	)
 
 set(GEAKIT_HEADERS
 	src/gui/gmainwindow.h
 	src/gui/gsettingsdialog.h
 	src/api/gaccountapi.h
+	src/api/grepositoryapi.h
 	src/gui/gprojectdialog.h
 	src/gui/gcodeview.h
 	src/gui/gcommitview.h
@@ -42,6 +45,7 @@ set(GEAKIT_HEADERS
 	src/gui/gitcommand.h
 	src/gui/gbutton.h
 	src/gui/gcommitdialog.h
+	src/gui/gbranchnamedialog.h
 	)
 
 set(GEAKIT_UIS
@@ -91,17 +95,49 @@ if(BUILD_TESTS)
 		src/gui/gbutton.cpp
 		src/gui/gcommitdialog.cpp
 		)
-	TEST(test2 ${TEST_SRC})
+	#	TEST(test2 ${TEST_SRC})
 	##test_API
 	set(TEST_API_SRC
 		tests/test_API.cpp
 		src/api/gaccountapi.cpp
+		src/api/grepositoryapi.cpp
 		)
 	set(TEST_HEADS
 		src/api/gaccountapi.h
+		src/api/grepositoryapi.h
 		)
 	qt4_wrap_cpp(TEST_MOC_SRC ${TEST_HEADS})
 		
 	add_executable(test_api ${TEST_API_SRC} ${TEST_MOC_SRC})
 	target_link_libraries(test_api git2 qjson ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTNETWORK_LIBRARY})
+
+	set(TEST_CONFIG_SRC
+		tests/test_config.cpp
+		)
+	add_executable(test_config ${TEST_CONFIG_SRC})
+	target_link_libraries(test_config git2)
+	#test branchView
+	set(TEST_BRANCH_SRC
+		tests/test_branchView.cpp
+		src/gui/gbranchview.cpp
+		src/gui/gitcommand.cpp
+		src/gui/gbutton.cpp
+		src/gui/gbranchnamedialog.cpp
+		)
+	set(TEST_BRANCH_HEADS
+		src/gui/gbranchview.h
+		src/gui/gitcommand.h
+		src/gui/gbutton.h
+		src/gui/gbranchnamedialog.h
+		)
+	qt4_wrap_cpp(TEST_BRANCH_MOC_SRC ${TEST_BRANCH_HEADS})
+	add_executable(test_branchview ${TEST_BRANCH_SRC} ${TEST_BRANCH_MOC_SRC})
+	target_link_libraries(test_branchview git2 ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+
+	set(TEST_BRANCH_SRC1
+		tests/test_branch.cpp
+		)
+	add_executable(test_branch ${TEST_BRANCH_SRC1})
+	target_link_libraries(test_branch git2)
 endif()
+ 

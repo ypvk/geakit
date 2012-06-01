@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QSettings>
+//#include <QProcess>
+
+#include <api/grepositoryapi.h>
 
 #include <git2.h>
 
@@ -15,12 +18,14 @@ class QPushButton;
 class QToolBar;
 class QWidget;
 class QStackedWidget;
+class QNetworkAccessManager;
 //class GCommitView;
 //class GCodeView;
 //class GBranchView;
 class QListWidgetItem;
 
 class GAccount;
+class GitCommand;
 
 namespace Ui
 {
@@ -64,13 +69,18 @@ class GMainWindow :public QMainWindow
     QWidget* m_codeViewWidget;
     QWidget* m_branchViewWidget;
     QWidget* m_commitViewWidget; 
-
+    
+    QNetworkAccessManager* m_manager;
+    GRepositoryAPI* m_reposAPI;
+    GitCommand* m_command;
+    QHash<QString, QString> m_projectsLocalHash;//project local ,key is name, value is thepath
     //each view (real widget)
 //    GCodeView* m_codeView;
 //    GCommitView* m_commitView;
 //    GBranchView* m_branchView;
     
     git_repository* m_currentRepo;
+    QString m_latestUpdatedRepo;
   
   private slots:
     void onSettingsActionTriggered();
@@ -85,6 +95,8 @@ class GMainWindow :public QMainWindow
     void openProject(QListWidgetItem* project);
     void updateView();
     void onBranchViewChanged();
+    void onAccessComplete(GRepositoryAPI::ResultCode resultCode);
+    void onProcessFinished(/*int exitCode, QProcess::ExitStatus exitStatus*/);
   private:
     void setupMenus();
     void setupActions();
@@ -93,6 +105,8 @@ class GMainWindow :public QMainWindow
     void buildGui();
     void initProjectItems();
     void setupToolBar();
+    void freeWidgets();
+    void resetConfigUrl();
 };
 
 #endif

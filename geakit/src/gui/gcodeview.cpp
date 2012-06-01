@@ -162,34 +162,93 @@ void GCodeView::gitAdd() {
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
   ******************************************************************************************/
+  /****************rewrite******************************************
   git_index* m_index;
   int error;
   error = git_repository_index(&m_index, m_repos);
   QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
   while(it != m_selectedItems.end()) {
     //first get the path
-    char* path;
+   // char* path;
+
+    
     if (m_tmpRoot == "") {
-      QString filePath = (*it++)->text(0);
+      QString filePath = (*it)->text(0);
       qDebug() << filePath;
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
     }
     else {
-      QString filePath = m_tmpRoot + "/" + (*it++)->text(0);
+      QString filePath = m_tmpRoot + "/" + (*it)->text(0);
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
   }
-    qDebug() << "selected path is " << path;
+  
+   // qDebug() << "selected path is " << path;
+    if ((*it)->data(0, Qt::WhatsThisRole).toString() == "dir") {
+      qDebug() << "is dir";
+      gitAddDirectory((*it)->text(0));
+    }
+    else {
     int error;
     error = git_index_add(m_index, path, (GIT_IDXENTRY_ADDED & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT);
     if (error < GIT_SUCCESS)qDebug() << "add failue";
     error = git_index_write(m_index);
     delete[] path;
+    }
+
+    it ++;
   } 
   git_index_free(m_index); 
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
+  ***************************************************************************/
+  QStringList fileNames;
+  QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
+  while(it != m_selectedItems.end()) {
+    if ((*it)->data(0, Qt::WhatsThisRole).toString() == "dir") {
+      qDebug() << "is dir";
+      gitAddDirectory((*it)->text(0));
+    }
+    else {
+      QString path = m_tmpRoot == "" ? *it : (m_tmpRoot + "/" + (*it));
+      fileNames << path;
+    }
+  }
+  if (fileNames.size() > 0) {
+    m_command->setRepository(m_repos);
+    m_command->gitAdd(fileNames);
+  }
+  QDir dir(m_workdirRoot + m_tmpRoot);
+  updateView(dir);
+}
+void GCodeView::gitAddDirectory(const QString& dirName) {
+  //build the dir if is file than add to index
+  QString dirString = m_tmpRoot == "" ? (m_workdirRoot + dirName) : (m_workdirRoot + m_tmpRoot + "/" + dirName);
+
+  qDebug() << dirString;
+  QDir dir(dirString);
+  if (!dir.exists()) return;
+  dir.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+  QStringList dirList = dir.entryList();
+  QStringList::const_iterator it = dirList.constBegin();
+  while (it != dirList.constEnd()) {
+    gitAddDirectory(dirName + "/" + (*it));
+    it ++;
+  }
+  dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
+  QStringList fileAddList;
+  QStringList fileList = dir.entryList();
+  it = fileList.constBegin();
+  while ( it != fileList.constEnd()) {
+    //first get the path
+    QString path = m_tmpRoot == "" ? *it : (m_tmpRoot + "/" + dirName + "/" + (*it));
+    fileAddList << path;
+    qDebug() << path;
+    it ++;
+  }
+  m_command->setRepository(m_repos);
+  m_command->gitAdd(fileAddList);  
 }
 void GCodeView::gitRm() {
   /************delete first the thing in the entry, after commit delete the entry int the working dir***********/
@@ -356,6 +415,7 @@ void GCodeView::updateView(QDir& dir) {
       dirItem->setIcon(0, dirIcon);
       dirItem->setText(3, tr("dir"));
       dirItem->setCheckState(0, Qt::Unchecked);
+      dirItem->setData(0, Qt::WhatsThisRole, QString("dir"));
     }
   }
   dir.setFilter(QDir::Files);
@@ -474,3 +534,6 @@ void GCodeView::onItemClicked(QTreeWidgetItem* item, int column)
   }
   */
 } 
+void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
+  
+}

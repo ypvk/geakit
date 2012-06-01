@@ -139,7 +139,7 @@ void GCommitView::htmlParaphrase(QString& html, const QHash<QString,QString>& st
 }
 void GCommitView::setHtmlHead(QString& html) {
   QFile file(":/html_files/commit_head.html");
-  if(!file.open(QIODevice::ReadOnly | QIODevice::ReadOnly)) {
+  if(!file.open(QIODevice::ReadOnly)) {
     qDebug() << "Open file falure!";
     return;
   }
@@ -150,7 +150,7 @@ void GCommitView::setHtmlHead(QString& html) {
 void GCommitView::setHtmlEnd(QString& html) {
 //html = html + "</ul></body></html>";
   QFile file(":/html_files/commit_end.html");
-  if(!file.open(QIODevice::ReadOnly | QIODevice::ReadOnly)) {
+  if(!file.open(QIODevice::ReadOnly)) {
     qDebug() << "Open file falure!";
     return;
   }

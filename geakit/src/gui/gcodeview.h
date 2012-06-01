@@ -24,8 +24,10 @@ class GCodeView : public QWidget
     void newCommit();
   private:
 //    void searchFiles();
+    void gitAddDirectory(const QString& dirName);
   private:
     void updateView(QDir& dir);
+    void freeTreeWidget(QTreeWidget* treeWidget);
   public slots:
     void gitAdd();
     void gitRm();

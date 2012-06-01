@@ -24,7 +24,18 @@ void GAccountAPI::parseFinished(QNetworkReply* reply) {
   switch (err) {
     case QNetworkReply::NoError:
       {
-        qDebug() << reply->readAll();
+        QString json = reply->readAll();
+        qDebug() << json;
+        bool ok;
+        QVariantMap result = m_parser->parse(json.toAscii(), &ok).toMap();
+        if (ok) {
+          QList<QString> keys = result.keys();
+          QList<QString>::const_iterator it = keys.constBegin();
+          while (it != keys.constEnd()) {
+            qDebug() << *it << ":" << result[*it].toString();
+            it ++;
+          }
+        }
      //   qDebug() << reply->rawHeaderPairs();
         break;
       }
