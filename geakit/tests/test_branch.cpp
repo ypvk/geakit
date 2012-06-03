@@ -29,9 +29,12 @@ int main(int argc, char* argv[]) {
   git_oid_fmt(my_oid, &oid_out);
   cout << "oid is " << my_oid << endl;
   git_reference_free(head);
-  error = git_reference_create_oid(&newBranch, m_repos, name, &oid_out, 1);
+  const char* branchName = "refs/heads/branch1";
+  //git_buf_joinpath(&wholeName, GIT_REFS_HEADS_DIR, branch_name);
+  error = git_reference_create_oid(&newBranch, m_repos, branchName, &oid_out, 1);
   if (error < GIT_SUCCESS) {
     cerr << "error" << endl;
+    cerr << error << endl;
   }
 //  git_repository_free(m_repos);
  // git_reference_free(head);

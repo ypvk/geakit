@@ -148,7 +148,8 @@ void GitCommand::createBranch(const QString& branchName) {
   git_oid_fmt(my_oid, head_oid);
   qDebug() << "oid is : " << my_oid;
   git_reference* newBranch;
-  error = git_reference_create_oid(&newBranch, m_repo, branchName.toLocal8Bit().constData(), head_oid, 1);
+  QString wholeName = QString("refs/heads/%1").arg(branchName);
+  error = git_reference_create_oid(&newBranch, m_repo, wholeName.toLocal8Bit().constData(), head_oid, 1);
   if (error < GIT_SUCCESS) {
     qDebug() << "error create new branch";
     return;
@@ -171,6 +172,35 @@ void GitCommand::gitAdd(const QStringList& fileList) {
   }
     error = git_index_write(index);
     git_index_free(index);
+}
+void GitCommand::gitReverse() {
+  git_index* index;
+  git_commit* headCommit;
+  git_reference* head;
+  const git_oid* oid;
+  git_tree* headTree;
+
+  int error = git_repository_head(&head, m_repo);
+  error = git_repository_index(&index, m_repo);
+  oid = git_reference_oid(head);
+  error = git_commit_lookup(&headCommit, m_repo, oid);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error get the Commit";
+  }
+  error = git_commit_tree(&headTree, headCommit);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error get the tree";
+  }
+  error = git_index_read_tree(index, headTree);
+  error = git_index_write(index);
+  git_index_free(index); 
+  git_tree_free(headTree);
+  git_commit_free(headCommit);
+  git_reference_free(head);
+    //int error = git_repository_index(&index, m_repo);
+  //TODO if error < GIT_SUCCESS
+  //git_index_clear(index);
+  git_index_free(index);
 }
 GitCommand::~GitCommand() {
 }

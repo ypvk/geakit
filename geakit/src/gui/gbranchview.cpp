@@ -265,5 +265,6 @@ void GBranchView::onNewBranchButtonClicked() {
       m_command->createBranch(branchName);
     }
   }
+  emit renewObject();
 }
 

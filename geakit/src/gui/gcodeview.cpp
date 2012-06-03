@@ -24,6 +24,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_currentDir = new QLabel(this);
   m_gitAddButton = new QPushButton(tr("Add"), this);
   m_gitRmButton = new QPushButton(tr("Remove"), this);
+  m_gitReverseButton = new QPushButton(tr("Reverse"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
 
   QHBoxLayout* mainLayout = new QHBoxLayout(this);
@@ -35,6 +36,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 
   buttonLayout->addWidget(m_gitAddButton);
   buttonLayout->addWidget(m_gitRmButton);
+  buttonLayout->addWidget(m_gitReverseButton);
   buttonLayout->addWidget(m_gitCommitButton);
   buttonLayout->addStretch(0.5);
   mainLayout->addLayout(fileLayout);
@@ -42,6 +44,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   connect(m_gitAddButton, SIGNAL(clicked()), this, SLOT(gitAdd()));
   connect(m_gitRmButton, SIGNAL(clicked()), this, SLOT(gitRm()));
   connect(m_gitCommitButton, SIGNAL(clicked()), this, SLOT(gitCommit()));
+  connect(m_gitReverseButton, SIGNAL(clicked()), this, SLOT(gitReverse()));
 
  // setLayout(mainLayout);
 
@@ -211,9 +214,10 @@ void GCodeView::gitAdd() {
       gitAddDirectory((*it)->text(0));
     }
     else {
-      QString path = m_tmpRoot == "" ? *it : (m_tmpRoot + "/" + (*it));
+      QString path = m_tmpRoot == "" ? (*it)->text(0) : (m_tmpRoot + "/" + (*it)->text(0));
       fileNames << path;
     }
+    ++ it;
   }
   if (fileNames.size() > 0) {
     m_command->setRepository(m_repos);
@@ -393,7 +397,8 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
   }
 }
 void GCodeView::updateView(QDir& dir) {
-  m_fileList->clear();
+  //m_fileList->clear();
+  freeTreeWidget(m_fileList);
   m_selectedItems.clear();
   m_filesToDelete.clear();
   if (m_tmpRoot == "") {
@@ -414,7 +419,9 @@ void GCodeView::updateView(QDir& dir) {
       QTreeWidgetItem* dirItem = new QTreeWidgetItem(m_fileList, QStringList() << dirList[i]);
       dirItem->setIcon(0, dirIcon);
       dirItem->setText(3, tr("dir"));
-      dirItem->setCheckState(0, Qt::Unchecked);
+      if (dirList[i] != "..") {
+        dirItem->setCheckState(0, Qt::Unchecked);
+      }
       dirItem->setData(0, Qt::WhatsThisRole, QString("dir"));
     }
   }
@@ -471,49 +478,6 @@ void GCodeView::updateView(QDir& dir) {
           break;
       }
       delete[] path;
-      /*******************here we can't get tree and the item realize later****************
-      //get the index and the property
-      git_index* fileIndex;
-      qDebug() << "index is :" << m_workdirRoot + m_tmpRoot;
-      error = git_index_open(&fileIndex, m_tmpRoot.toLocal8Bit().data());
-      git_index_read(fileIndex);
-      if (error < GIT_SUCCESS) {
-        qDebug() << "error open the index";
-      }
-      qDebug() << "index count is : " << git_index_entrycount(fileIndex);
-      git_reference* head;
-      error = git_repository_head(&head, m_repos);
-      if (error < GIT_SUCCESS) {
-        qDebug() << "error";
-      }
-      const git_oid* headOid = git_reference_oid(head);
-      //now get the tree
-      git_tree* m_tree;
-      git_commit* headCommit;
-      error = git_commit_lookup(&headCommit, m_repos, headOid);
-      if (error < GIT_SUCCESS) {
-        qDebug() << "error 22";
-      }
-      error = git_commit_tree(&m_tree, headCommit);
-      if (error < GIT_SUCCESS) {
-        qDebug() << "error 33";
-      }
-      int num = git_tree_entrycount(m_tree);
-      for (int i = 0; i < num; i++) {
-       const git_tree_entry* git_entry = git_tree_entry_byindex(m_tree, i);
-       qDebug() << git_tree_entry_name(git_entry);
-       qDebug() << git_tree_entry_type(git_entry);
-      }
-      git_commit_free(headCommit);
-      git_tree_free(m_tree);
-      git_reference_free(head);
-//      qDebug() << "index count";
-//      qDebug() << git_index_entrycount(fileIndex);
-//      git_index_entry* indexEntry = git_index_get(fileIndex, 0);
-      //qDebug() << indexEntry->path;
-      git_index_free(fileIndex);
-      delete[] path;
-      *******************************************************/
     }
   }
 }
@@ -535,5 +499,16 @@ void GCodeView::onItemClicked(QTreeWidgetItem* item, int column)
   */
 } 
 void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
+  int size = treeWidget->topLevelItemCount();
+  for (int i = 0; i < size; i++) {
+    QTreeWidgetItem* item = treeWidget->takeTopLevelItem(0);
+    delete item;
+  }
+}
+void GCodeView::gitReverse() {
   
+  m_command->setRepository(m_repos);
+  m_command->gitReverse();
+  QDir dir(m_workdirRoot + m_tmpRoot);
+  updateView(dir);
 }

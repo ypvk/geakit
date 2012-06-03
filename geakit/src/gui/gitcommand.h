@@ -22,6 +22,7 @@ class GitCommand : public QThread
     void createBranch(const QString& branchName);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
+    void gitReverse();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
   signals:

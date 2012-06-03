@@ -32,6 +32,7 @@ class GCodeView : public QWidget
     void gitAdd();
     void gitRm();
     void gitCommit();
+    void gitReverse();
     void onItemDoubleCilcked(QTreeWidgetItem* item, int column);
     void onItemClicked(QTreeWidgetItem* item, int column);
   private:
@@ -39,6 +40,7 @@ class GCodeView : public QWidget
     QTreeWidget* m_fileList;
     QPushButton* m_gitAddButton;
     QPushButton* m_gitRmButton;
+    QPushButton* m_gitReverseButton;//revers
     QPushButton* m_gitCommitButton;
     QString m_workdirRoot;//repos root
     QString m_tmpRoot;//current dir
