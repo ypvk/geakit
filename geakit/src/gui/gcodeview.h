@@ -12,6 +12,7 @@ class QTreeWidgetItem;
 class QLabel;
 class GitCommand;
 class GCommitDialog;
+//class GCodeViewEditor;
 
 class GCodeView : public QWidget
 {
@@ -50,5 +51,6 @@ class GCodeView : public QWidget
     QString m_commitOid;//head commit oid string
     QSettings m_setting;//settings to save the modified tree
     QLabel* m_currentDir;
+    //GCodeViewEditor* m_editor;
 };
 #endif

@@ -1,8 +1,10 @@
 #include "gcodeview.h"
 #include "gitcommand.h"
 #include "gcommitdialog.h"
+#include "gcodevieweditor.h"
 
 #include <QHeaderView>
+#include <QPointer>
 #include <QDebug>
 #include <QTreeWidget>
 #include <QDir>
@@ -26,6 +28,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_gitRmButton = new QPushButton(tr("Remove"), this);
   m_gitReverseButton = new QPushButton(tr("Reverse"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
+  //m_editor = new GCodeViewEditor(this);
 
   QHBoxLayout* mainLayout = new QHBoxLayout(this);
   QVBoxLayout* buttonLayout = new QVBoxLayout;
@@ -394,6 +397,14 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
     }
     QDir dir(m_workdirRoot + m_tmpRoot);
     updateView(dir);
+  }
+  else {
+    QString fileName = item->text(0);
+//    GCodeViewEditor* m_editor = new GCodeViewEditor();
+    QPointer<GCodeViewEditor> m_editor = new GCodeViewEditor();
+    QString path = m_tmpRoot == "" ? m_workdirRoot + fileName : m_workdirRoot + m_tmpRoot + "/" + fileName;
+    m_editor->loadFile(path);
+    m_editor->show();
   }
 }
 void GCodeView::updateView(QDir& dir) {

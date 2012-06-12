@@ -26,6 +26,7 @@ signals:
     void onPushButtonClicked();
     void onFetchButtonClicked();
     void onNewBranchButtonClicked();
+    void onRmBranchButtonClicked(int id);
   private:
     QString getRemoteUrl(const QString& remoteName);
   private:

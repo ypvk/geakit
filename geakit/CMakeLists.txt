@@ -30,6 +30,8 @@ set(GEAKIT_SRCS
 	src/gui/gbutton.cpp
 	src/gui/gcommitdialog.cpp
 	src/gui/gbranchnamedialog.cpp
+	src/gui/ghighlighter.cpp
+	src/gui/gcodevieweditor.cpp
 	)
 
 set(GEAKIT_HEADERS
@@ -46,6 +48,8 @@ set(GEAKIT_HEADERS
 	src/gui/gbutton.h
 	src/gui/gcommitdialog.h
 	src/gui/gbranchnamedialog.h
+	src/gui/ghighlighter.h
+	src/gui/gcodevieweditor.h
 	)
 
 set(GEAKIT_UIS

@@ -15,7 +15,6 @@
 #include "gitcommand.h"
 #include "gbranchnamedialog.h"
 #include "gbutton.h"
-#include <iostream>
 
 GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent) 
 {
@@ -83,15 +82,22 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
       changeButton->setText(tr("Change Here"));
       GButton* mergeButton = new GButton(this, i);
       mergeButton->setText(tr("Merge to main"));
+      GButton* rmBranchButton = new GButton(this, i);
+      rmBranchButton->setText(tr("Delete"));
+
       tmpLayout->addWidget(label);
      // tmpLayout->addStretch(2);
      // tmpLayout->addSt(20);
       tmpLayout->addStretch(1);
       tmpLayout->addWidget(changeButton);
       tmpLayout->addWidget(mergeButton);
+      tmpLayout->addWidget(rmBranchButton);
+
       localLayout->addLayout(tmpLayout);
       connect(changeButton, SIGNAL(clicked()), changeButton, SLOT(showId()));
       connect(changeButton, SIGNAL(buttonId(int)), this, SLOT(onChangeButtonClicked(int)));
+      connect(rmBranchButton, SIGNAL(clicked()), rmBranchButton, SLOT(showId()));
+      connect(rmBranchButton, SIGNAL(buttonId(int)), this, SLOT(onRmBranchButtonClicked(int)));
 
       connect(mergeButton, SIGNAL(clicked()), mergeButton, SLOT(showId()));
       connect(mergeButton, SIGNAL(buttonId(int)), this, SLOT(onMergeButtonClicked(int)));
@@ -186,6 +192,7 @@ void GBranchView::onChangeButtonClicked(int id) {
   if (error < GIT_SUCCESS) {
     qDebug() << "error change the branch";
   }  
+  git_reference_free(newHead);
   emit renewObject();
 }
 void GBranchView::onMergeButtonClicked(int id) {
@@ -265,6 +272,22 @@ void GBranchView::onNewBranchButtonClicked() {
       m_command->createBranch(branchName);
     }
   }
+  emit renewObject();
+}
+/**************delete one new branch**********/
+void GBranchView::onRmBranchButtonClicked(int id) {
+  git_reference* branch;
+  int error = git_reference_lookup(&branch, m_repo, m_branchList[id].toLocal8Bit().constData());
+  if (error < GIT_SUCCESS) {
+    qDebug() << "Can't get the branch"; 
+    return;
+  }
+  error = git_reference_delete(branch);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "can't delete";
+    return;
+  }
+  branch = NULL;
   emit renewObject();
 }
 

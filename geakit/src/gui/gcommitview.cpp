@@ -166,7 +166,8 @@ void GCommitView::onLinkClicked(const QUrl& url) {
   QMessageBox::information(this, tr("infp"), url.toString());
  // m_patchView->setCommit(m_commitList[0]);
   m_patchView->setCommitOid(url.toString());
-  m_patchView->execute();
+//  m_patchView->execute();
+  m_patchView->getDiff();
   m_patchGroupBox->show();
  // delete m_pathView;
 }
