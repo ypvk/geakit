@@ -202,6 +202,22 @@ void GitCommand::gitReverse() {
   //git_index_clear(index);
   git_index_free(index);
 }
+void GitCommand::createRemote(const QString& remoteName, const QString& remoteUrl) {
+  /***************without git_remote_save(git_remote* remote) using shell instead*******
+  git_remote* remoteNew;
+  int error = git_remote_new(&remoteNew, m_repo, remoteUrl.toLocal8Bit().constData(), remoteName.toLocal8Bit().constData());
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error create new remote";
+    return;
+  }
+  qDebug() << "remote Name: " << git_remote_name(remoteNew);
+  git_remote_free(remoteNew);
+  *****************************end***************************************************/
+  QString cmd = QString("git remote add %1 %2").arg(remoteName).arg(remoteUrl);
+  this->execute(cmd);
+
+}
+
 GitCommand::~GitCommand() {
 }
 

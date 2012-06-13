@@ -26,6 +26,7 @@ signals:
     void onPushButtonClicked();
     void onFetchButtonClicked();
     void onNewBranchButtonClicked();
+    void onNewRemoteButtonClicked();
     void onRmBranchButtonClicked(int id);
   private:
     QString getRemoteUrl(const QString& remoteName);
@@ -34,6 +35,7 @@ signals:
     QPushButton* m_pushButton;
     QPushButton* m_fetchButton;
     QPushButton* m_newBranchButton;
+    QPushButton* m_newRemoteButton;
     QGroupBox* m_localBranchArea;
     QList<QGroupBox*> m_remotAreaList; 
     QScrollArea* m_mainArea;

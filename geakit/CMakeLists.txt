@@ -32,6 +32,7 @@ set(GEAKIT_SRCS
 	src/gui/gbranchnamedialog.cpp
 	src/gui/ghighlighter.cpp
 	src/gui/gcodevieweditor.cpp
+	src/gui/gremotenamedialog.cpp
 	)
 
 set(GEAKIT_HEADERS
@@ -50,6 +51,7 @@ set(GEAKIT_HEADERS
 	src/gui/gbranchnamedialog.h
 	src/gui/ghighlighter.h
 	src/gui/gcodevieweditor.h
+	src/gui/gremotenamedialog.h
 	)
 
 set(GEAKIT_UIS
@@ -127,12 +129,14 @@ if(BUILD_TESTS)
 		src/gui/gitcommand.cpp
 		src/gui/gbutton.cpp
 		src/gui/gbranchnamedialog.cpp
+		src/gui/gremotenamedialog.cpp
 		)
 	set(TEST_BRANCH_HEADS
 		src/gui/gbranchview.h
 		src/gui/gitcommand.h
 		src/gui/gbutton.h
 		src/gui/gbranchnamedialog.h
+		src/gui/gremotenamedialog.h
 		)
 	qt4_wrap_cpp(TEST_BRANCH_MOC_SRC ${TEST_BRANCH_HEADS})
 	add_executable(test_branchview ${TEST_BRANCH_SRC} ${TEST_BRANCH_MOC_SRC})

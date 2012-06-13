@@ -14,6 +14,7 @@
 #include <iostream>
 #include "gitcommand.h"
 #include "gbranchnamedialog.h"
+#include "gremotenamedialog.h"
 #include "gbutton.h"
 
 GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent) 
@@ -26,6 +27,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_fetchButton = new QPushButton(tr("Fetch"), this);
   m_remoteNames = new QComboBox(this);
   m_newBranchButton = new QPushButton(tr("NewBranch"), this);
+  m_newRemoteButton = new QPushButton(tr("NewRemote"), this);
   m_password = "";
   QWidget* mainWidget = new QWidget(this);
   QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -36,6 +38,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   mainWidget->setStyleSheet("QWidget #branch-widget {background:white}");
   QHBoxLayout* m_actionButtonLayout = new QHBoxLayout;
   m_actionButtonLayout->addWidget(m_newBranchButton);
+  m_actionButtonLayout->addWidget(m_newRemoteButton);
   m_actionButtonLayout->addStretch(1);
   m_actionButtonLayout->addWidget(m_remoteNames);
   m_actionButtonLayout->addWidget(m_pushButton);
@@ -49,6 +52,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   connect(m_pushButton, SIGNAL(clicked()), this, SLOT(onPushButtonClicked()));
   connect(m_fetchButton, SIGNAL(clicked()), this, SLOT(onFetchButtonClicked()));
   connect(m_newBranchButton, SIGNAL(clicked()), this, SLOT(onNewBranchButtonClicked()));
+  connect(m_newRemoteButton, SIGNAL(clicked()), this, SLOT(onNewRemoteButtonClicked()));
   //show all the reference branch
   git_strarray strarray;
   int error;
@@ -290,4 +294,26 @@ void GBranchView::onRmBranchButtonClicked(int id) {
   branch = NULL;
   emit renewObject();
 }
-
+/*************add new remote function***************/
+void GBranchView::onNewRemoteButtonClicked() {
+  GRemoteNameDialog dlg;
+  if (QDialog::Accepted == dlg.exec()) {
+    QString remoteName = dlg.remoteName();
+    QString url = dlg.remoteUrl();
+    bool isNameExit = false;
+    QList<QString>::const_iterator it = m_remoteList.constBegin();
+    while ( it != m_remoteList.constEnd()) {
+      if ((*it) == remoteName) {
+        QMessageBox::warning(this, tr("warning"), tr("Branch Name Exits"));
+        isNameExit = true;
+        break;
+      }
+      ++it;
+    }
+    if (!isNameExit) {
+      m_command->setRepository(m_repo);
+      m_command->createRemote(remoteName, url);
+    }
+  }
+  emit renewObject();
+}
