@@ -213,9 +213,24 @@ void GitCommand::createRemote(const QString& remoteName, const QString& remoteUr
   qDebug() << "remote Name: " << git_remote_name(remoteNew);
   git_remote_free(remoteNew);
   *****************************end***************************************************/
+  QString workDir(git_repository_workdir(m_repo));
+  this->setWorkDir(workDir);
   QString cmd = QString("git remote add %1 %2").arg(remoteName).arg(remoteUrl);
   this->execute(cmd);
-
+}
+void GitCommand::removeRemote(const QString& remoteName) {
+  // use shell first then may use libgit2 instead
+  QString workDir(git_repository_workdir(m_repo));
+  this->setWorkDir(workDir);
+  QString cmd = QString("git remote rm %1").arg(remoteName);
+  this->execute(cmd);
+}
+void GitCommand::gitCheckout(const QString& shaId) {
+  //use shell first then may use libgit2 instead
+  QString workDir(git_repository_workdir(m_repo));
+  this->setWorkDir(workDir);
+  QString cmd = QString("git checkout %1").arg(shaId);
+  this->execute(cmd);
 }
 
 GitCommand::~GitCommand() {

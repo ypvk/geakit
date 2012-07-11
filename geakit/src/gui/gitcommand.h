@@ -21,6 +21,8 @@ class GitCommand : public QThread
     void setCmd(const QString& cmd);
     void createBranch(const QString& branchName);
     void createRemote(const QString& remoteName, const QString& remoteUrl);
+    void removeRemote(const QString& remoteName);
+    void gitCheckout(const QString& shaId);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
     void gitReverse();
