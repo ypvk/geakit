@@ -19,9 +19,10 @@ class QToolBar;
 class QWidget;
 class QStackedWidget;
 class QNetworkAccessManager;
-//class GCommitView;
-//class GCodeView;
-//class GBranchView;
+class GProjectsView;
+class GCommitView;
+class GCodeView;
+class GBranchView;
 class QListWidgetItem;
 
 class GAccount;
@@ -65,10 +66,14 @@ class GMainWindow :public QMainWindow
     QAction* m_commitViewAction;
     
     QStackedWidget* m_widgets;
-    QWidget* m_projectsWidget;
-    QWidget* m_codeViewWidget;
-    QWidget* m_branchViewWidget;
-    QWidget* m_commitViewWidget; 
+    //QWidget* m_projectsWidget;
+    //QWidget* m_codeViewWidget;
+    //QWidget* m_branchViewWidget;
+    //QWidget* m_commitViewWidget; 
+    GProjectsView* m_projectsWidget;
+    GCodeView* m_codeViewWidget;
+    GBranchView* m_branchViewWidget;
+    GCommitView* m_commitViewWidget;
     
     QNetworkAccessManager* m_manager;
     GRepositoryAPI* m_reposAPI;
@@ -90,15 +95,16 @@ class GMainWindow :public QMainWindow
     void onBranchViewActionTriggered();
     void onCommitViewActionTriggered();
 
-    void addProjectToLocal();
-    void removeProjectInLocal();
+    //void addProjectToLocal();
+    //void removeProjectInLocal();
     //void openProject(QListWidgetItem* project);
-    void openProject(const QString& reposWorkdir);
+    void onOpenProject(const QString& reposWorkdir);
+    void onRemoveProject(const QString& reposWorkdir);
     void updateView();
     void onBranchViewChanged();
     void onAccessComplete(GRepositoryAPI::ResultCode resultCode);
     void onWorkingStatusChanged(const QString& status, const QString& message);
-    void onProcessFinished(/*int exitCode, QProcess::ExitStatus exitStatus*/);
+    //void onProcessFinished([>int exitCode, QProcess::ExitStatus exitStatus<]);
   private:
     void setupMenus();
     void setupActions();
@@ -108,7 +114,7 @@ class GMainWindow :public QMainWindow
     void initProjectItems();
     void setupToolBar();
     void freeWidgets();
-    void resetConfigUrl();
+    //void resetConfigUrl();
 };
 
 #endif

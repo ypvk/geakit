@@ -29,6 +29,7 @@
 #include "gitcommand.h"
 
 #include "data/account.h"
+#include <iostream>
 
 GMainWindow::GMainWindow(QWidget* parent):QMainWindow(parent), ui(new Ui::GMainWindow)
 {
@@ -155,26 +156,21 @@ void GMainWindow::closeEvent(QCloseEvent *event)
   event->accept();
 }
 void GMainWindow::buildGui() {
+  m_widgets = new QStackedWidget(this);
   //this three widget is controlled by myself can be delete and new by myself;
   m_projectsWidget = new GProjectsView(this, m_account);
-  m_codeViewWidget = m_branchViewWidget = m_commitViewWidget = NULL;
-  /*
-  m_codeViewWidget = new QWidget;
-  m_branchViewWidget = new QWidget;
-  m_commitViewWidget = new QWidget;
-*/
+  m_codeViewWidget = NULL;
+  m_branchViewWidget = NULL;
+  m_commitViewWidget = NULL;
+
   m_widgets->addWidget(m_projectsWidget);
-  /*
-  m_widgets->addWidget(m_codeViewWidget);
-  m_widgets->addWidget(m_branchViewWidget);
-  m_widgets->addWidget(m_commitViewWidget);
-*/
+
   m_widgets->setCurrentIndex(0);
 
-//  m_projectsWidget->setLayout(mainLayout);
   setCentralWidget(m_widgets);
-  connect(m_projectsWidget, SIGNAL(openProject(QString&)), this, SLOT(openProject(QString&)));
-  connect(m_projectsWidget, SIGNAL(workingStatusChanged(QString&, QString&)), this, SLOT(onWorkingStatusChanged(QString&, QString&)));
+  connect(m_projectsWidget, SIGNAL(openProject(QString)), this, SLOT(onOpenProject(QString)));
+  connect(m_projectsWidget, SIGNAL(removeProject(QString)), this, SLOT(onRemoveProject(QString)));
+  connect(m_projectsWidget, SIGNAL(workingStatusChanged(QString, QString)), this, SLOT(onWorkingStatusChanged(QString, QString)));
 }
 void GMainWindow::initProjectItems() {
   if ("" == m_account->username()) {
@@ -191,98 +187,8 @@ void GMainWindow::initProjectItems() {
   m_projectsWidget->setProjectsOnlineEnabled(false);
   this->statusBar()->showMessage(tr("connectting ..."));
 
-  /****************projects local************************
-  QHash<QString, QString>::const_iterator it = m_projectsLocalHash.constBegin();
-  while (it != m_projectsLocalHash.constEnd()) {
-    QListWidgetItem* project = new QListWidgetItem(m_projectsLocal);
-    QString text = QString("%1:\t%2").arg(it.key()).arg(it.value());
-    project->setText(text);
-    ++ it;
-  }
-  *******************************************************/
   m_projectsWidget->setProjectsLocalHash(m_projectsLocalHash);
   m_projectsWidget->initProjectsItems(m_projectsLocalHash, tr("local"));
-}
-void GMainWindow::addProjectToLocal() {
-  /*************test, projects' name get from the settings*****************/
-  QList<QListWidgetItem* > selectedProjects = m_projectsOnline->selectedItems();
-  QList<QListWidgetItem*>::iterator it = selectedProjects.begin();
-  while (it != selectedProjects.end()) {
-    //QListWidgetItem* item = m_projectsOnline->takeItem(m_projectsOnline->row(*it));
-    QString text = (*it)->text();
-    qDebug() << text;
-    QRegExp rx = QRegExp("([^:]+)?:");
-    int pos = text.indexOf(rx);
-    if (pos < 0) return;
-    QString projectName = rx.cap(1);
-    QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping/yp/git"));
-    QString path = dirName + "/" + projectName;
-    //save the value
-    if (m_projectsLocalHash.value(projectName) != "") {
-      QMessageBox::warning(this, tr("warning"), tr("projects has been here, try another place"));
-      return;
-    }
-    m_projectsLocalHash.insert(projectName, path);
-
-    //now use git clone to clone the repository to local
-    m_command->setWorkDir(dirName);
-    //here use https://name@github.com/name/repos_name.git as the url;
-    QString reposUrl = QString("https://%1:%3@github.com/%1/%2.git").arg(m_account->username()).arg(projectName).arg(m_account->password());
-    //reposUrl = reposUrl + projectName + ".git";
-    qDebug() << reposUrl;
-    QString cmd = QString("git clone %1").arg(reposUrl);
-    qDebug() << cmd;
-    //add tips
-    this->statusBar()->showMessage(tr("clone the repos"));
-    //m_command->setCmd(cmd);
-    //do it asycronize
-    m_command->setWaitTime(0);
-    m_command->execute(cmd);
-    m_projectsLocal->setEnabled(false);
-    //add the latestUpdateRepos String to reset the remote url in the config file(remove the password)
-    m_latestUpdatedRepo = projectName;
-    //qDebug() << m_command->output();
-   // this->statusBar()->showMessage("");
-    QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
-    QString tmpText = QString("%1:\t%2/%1").arg(projectName).arg(dirName);
-    item->setText(tmpText);
-    m_projectsLocal->addItem(item);
-    it++;
-  }
-}
-void GMainWindow::removeProjectInLocal() {
-  QList<QListWidgetItem* > selectedProjects = m_projectsLocal->selectedItems();
-  QList<QListWidgetItem* >::iterator it = selectedProjects.begin();
-  while ( it != selectedProjects.end()) {
-    int reply = QMessageBox::question(this, tr("warning"), tr("Do you really want to delete the project?"), QMessageBox::Ok, QMessageBox::No);
-    if ( QMessageBox::No == reply) {
-      qDebug() << "Don't remove it";
-      return;
-    }
-    QListWidgetItem* item = m_projectsLocal->takeItem(m_projectsLocal->row(*it));
-    //m_projectsOnline->addItem(item);
-    QString projectString = item->text();
-    QStringList tmpList = projectString.split(":");
-    qDebug() << tmpList[0];
-    m_projectsLocalHash.remove(tmpList[0]);
-    bool result = m_command->removeGitDir(tmpList[1].trimmed()); 
-    qDebug() << "remove result:" << result;
-    if (NULL != m_currentRepo) {
-      QString workdir = QString(git_repository_workdir(m_currentRepo));
-      qDebug() << workdir;
-      //remove the last char;
-      workdir.resize(workdir.length() - 1);
-      qDebug() << tmpList[1].trimmed();
-      if (workdir == tmpList[1].trimmed()) {
-        git_repository_free(m_currentRepo);
-        m_currentRepo = NULL;
-        freeWidgets(); 
-      }
-    }
-    /*******also can remove the projects on disk***************/
-    delete item;
-    it++; 
-  }
 }
 
 
@@ -311,72 +217,48 @@ void GMainWindow::onBranchViewActionTriggered() {
 void GMainWindow::onCommitViewActionTriggered() {
   m_widgets->setCurrentIndex(2);
 }
-void GMainWindow::openProject(const QString& reposWorkdir) {
+void GMainWindow::onOpenProject(const QString& reposWorkdir) {
 
-  if (NULL != m_currentRepo && reposWorkdir != git_repository_workdir(m_currentRepo)) {
+  if (NULL != m_currentRepo && QDir::toNativeSeparators(reposWorkdir + "/") != git_repository_workdir(m_currentRepo)) {
     git_repository_free(m_currentRepo);
   }
-  else if (NULL != m_currentRepo && reposWorkdir == git_repository_workdir(m_currentRepo)) {
+  else if (NULL != m_currentRepo && QDir::toNativeSeparators(reposWorkdir + "/")== git_repository_workdir(m_currentRepo)) {
     m_widgets->setCurrentIndex(1);
     qDebug() << "repository has been opened";
     return;
   }
-  int error = git_repository_open(&m_currentRepo, reposPath.toLocal8Bit().constData());
-  qDebug() << project->text();
+  statusBar()->showMessage(tr("opening the repository..."));
+  m_projectsWidget->setProjectsLocalEnabled(false);
+  int error = git_repository_open(&m_currentRepo, reposWorkdir.toLocal8Bit().constData());
   if (error < GIT_SUCCESS) {
     qDebug() << "error open the repos";
     m_currentRepo = NULL;
     return;
   }
   updateView();
+  statusBar()->showMessage("");
+  m_projectsWidget->setProjectsLocalEnabled(true);
   m_widgets->setCurrentIndex(1);
+}
+void GMainWindow::onRemoveProject(const QString& reposWorkdir)
+{
+  if (NULL != m_currentRepo && QDir::toNativeSeparators(reposWorkdir + "/") == git_repository_workdir(m_currentRepo)) {
+    git_repository_free(m_currentRepo);
+    freeWidgets();
+  }
 }
 void GMainWindow::updateView() {
   
   //remove the origin widget
   //free the memory first
   freeWidgets();
-  /*
-  if (NULL != m_commitViewWidget) {
-    m_widgets->removeWidget(m_commitViewWidget);
-    delete m_commitViewWidget;
-  }
-  if (NULL != m_codeViewWidget) {
-    m_widgets->removeWidget(m_codeViewWidget);
-    delete m_codeViewWidget;
-  }
-  if (NULL != m_branchViewWidget) {
-    m_widgets->removeWidget(m_branchViewWidget);
-    delete m_branchViewWidget;
-  }
-  */
-  //m_codeViewWidget = new QWidget;
-  //m_branchViewWidget = new QWidget;
-  //m_commitViewWidget = new QWidget;
 
-  m_codeViewWidget = new GCommitView(this, m_currentRepo);
+  m_codeViewWidget = new GCodeView(this, m_currentRepo);
   m_commitViewWidget = new GCommitView(this, m_currentRepo);
   m_branchViewWidget = new GBranchView(this, m_currentRepo);
 
-  //GCommitView* m_commitView = new GCommitView(this, m_currentRepo);
-  //GCodeView* m_codeView = new GCodeView(this, m_currentRepo);
-  //GBranchView* m_branchView = new GBranchView(this, m_currentRepo);
 
-  m_branchView->setPassword(m_account->password());
-  //QVBoxLayout* commitLayout = new QVBoxLayout;
-  //QVBoxLayout* codeLayout = new QVBoxLayout;
-  //QVBoxLayout* branchLayout = new QVBoxLayout;
-  
-  //codeLayout->addLayout(buttonLayout1);
-  //codeLayout->addWidget(m_codeView);
- // commitLayout->addLayout(buttonLayout2);
- // commitLayout->addWidget(m_commitView);
- // branchLayout->addLayout(buttonLayout3);
-  //branchLayout->addWidget(m_branchView);
-
-  //m_codeViewWidget->setLayout(codeLayout);
-  //m_branchViewWidget->setLayout(branchLayout);
-  //m_commitViewWidget->setLayout(commitLayout); 
+  m_branchViewWidget->setPassword(m_account->password());
   
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);
@@ -401,16 +283,6 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
       {
         qDebug() << m_reposAPI->getReposNum();
         QHash<QString, QString> reposHash = m_reposAPI->getRepos();
-        /*
-        QHash<QString, QString>::const_iterator it = reposHash.constBegin();
-        while (it != reposHash.constEnd()) {
-          qDebug() << it.key() << ":" << it.value();
-          QListWidgetItem* projectItem = new QListWidgetItem(m_projectsOnline);
-          QString text = QString("%1:\t%2").arg(it.key()).arg(it.value());
-          projectItem->setText(text);
-          it ++ ;
-        }
-        */
         m_projectsWidget->initProjectsItems(reposHash, QString("online"));
         break;
       }
@@ -428,16 +300,9 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
       }
   }
 }
-/*
-void GMainWindow::onProcessFinished() {
-  qDebug() << "finished the process!!";
-  m_projectsLocal->setEnabled(true);
-  statusBar()->showMessage("");
-  resetConfigUrl();
-}
-*/
 void GMainWindow::onWorkingStatusChanged(const QString& status, const QString& message)
 {
+  qDebug() << status << " " << message;
   if (status == "start") {
     statusBar()->showMessage(message);
   }
@@ -465,37 +330,4 @@ void GMainWindow::freeWidgets() {
     delete m_branchViewWidget;
     m_branchViewWidget = NULL;
   }
-}
-void GMainWindow::resetConfigUrl() {
-  QString reposWorkdir = m_projectsLocalHash.value(m_latestUpdatedRepo);
-  git_repository* tmpRepos;
-  git_config* tmpConfig;
-  int error = git_repository_open(&tmpRepos, reposWorkdir.toLocal8Bit().constData());
-  if ( error < GIT_SUCCESS) {
-    qDebug() << "open repository " << m_latestUpdatedRepo;
-    return;
-  }
-  error = git_repository_config(&tmpConfig, tmpRepos);
-  if ( error < GIT_SUCCESS) {
-    qDebug() << "open config failed";
-  }
-  const char* name = "remote.origin.url";
-  const char* value;
-  error = git_config_get_string(tmpConfig, name, &value);
-  if (error == GIT_SUCCESS) {
-    qDebug() << name << ": " << value << endl;
-  }
-  QString url(value);
-  //remove the password in the url
-  QRegExp rx = QRegExp("(:[^//].+)?@");
-  int pos = url.indexOf(rx);
-  if (pos >= 0) {
-    //qDebug() << rx.cap(1);
-    url.replace(rx.cap(1), "");
-  }
-  //now set the value to the config file
-  error = git_config_set_string(tmpConfig, name, url.toLocal8Bit().constData());
-  //free the memory
-  git_config_free(tmpConfig);
-  git_repository_free(tmpRepos);
 }

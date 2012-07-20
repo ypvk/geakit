@@ -33,6 +33,7 @@ set(GEAKIT_SRCS
 	src/gui/ghighlighter.cpp
 	src/gui/gcodevieweditor.cpp
 	src/gui/gremotenamedialog.cpp
+	src/gui/gprojectsview.cpp
 	)
 
 set(GEAKIT_HEADERS
@@ -52,6 +53,7 @@ set(GEAKIT_HEADERS
 	src/gui/ghighlighter.h
 	src/gui/gcodevieweditor.h
 	src/gui/gremotenamedialog.h
+	src/gui/gprojectsview.h
 	)
 
 set(GEAKIT_UIS

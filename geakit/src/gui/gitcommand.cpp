@@ -41,10 +41,11 @@ void GitCommand::processFinished(int exitCode, QProcess::ExitStatus exitStatus) 
   else 
   {
     qDebug() << "in the process, exitCode: " << exitCode;
-    if (shouldResetTheUrl) {
+    if (m_shouldResetTheUrl) {
       QString dir = QDir::toNativeSeparators(m_workDir + "/" + m_projectName);
       gitResetConfigUrl(dir);
-      shouldResetTheUrl = false;
+      m_shouldResetTheUrl = false;
+    }
   }
     emit finishedProcess();
 }
@@ -252,7 +253,7 @@ void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
   git_config* tmpConfig;
   int error = git_repository_open(&tmpRepos, reposWorkdir.toLocal8Bit().constData());
   if ( error < GIT_SUCCESS) {
-    qDebug() << "open repository " << m_latestUpdatedRepo;
+    qDebug() << "open repository " << reposWorkdir;
     return;
   }
   error = git_repository_config(&tmpConfig, tmpRepos);

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QHash>
 class QListWidget;
+class QListWidgetItem;
 class QPushButton;
 class GitCommand;
 class GAccount;
@@ -17,6 +18,7 @@ class GProjectsView : public QWidget {
     QHash<QString, QString> projectsLocalHash();
     void initProjectsItems(const QHash<QString, QString>& projectOnlineHash, const QString& type = "");
     void setProjectsOnlineEnabled(bool isEnable);
+    void setProjectsLocalEnabled(bool isEnable);
   private slots:
     void addProjectToLocal();
     void removeProjectInLocal();
@@ -25,6 +27,7 @@ class GProjectsView : public QWidget {
   signals:
     void workingStatusChanged(const QString& status, const QString& message);
     void openProject(const QString& reposPath);
+    void removeProject(const QString& reposPath);
   private:
     QPushButton* m_addButton;
     QPushButton* m_rmButton;
@@ -35,5 +38,5 @@ class GProjectsView : public QWidget {
     QHash<QString, QString> m_projectsLocalHash;
     GitCommand* m_command;
     GAccount* m_account;
-}
+};
 #endif

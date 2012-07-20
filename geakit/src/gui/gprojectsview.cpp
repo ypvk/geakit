@@ -1,15 +1,19 @@
-#include "gpojectsview.h"
-#include "gitcommand"
+#include "gprojectsview.h"
+#include "data/account.h"
+#include "gitcommand.h"
 
 #include <QPushButton>
 #include <QListWidget>
+#include <QListWidgetItem>
+#include <QMessageBox>
+#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGroupBox>
 #include <QDebug>
 #include <QDir>
 
-GProjectsView::GProjectsView (QWidget* parent, GAccount* aaccount) : QWidget(parent), m_account(account)
+GProjectsView::GProjectsView (QWidget* parent, GAccount* account) : QWidget(parent), m_account(account)
 {
   //init
   m_command = new GitCommand(this);
@@ -46,7 +50,7 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* aaccount) : QWidget(par
   projectsOnlineBox->setLayout(groupLayoutOnline);
 
   groupLayoutLocal->addWidget(m_projectsLocal);
-  groupLayoutLocal->setLayout(groupLayoutLocal);
+  projectsLocalBox->setLayout(groupLayoutLocal);
 
   mainLayout->addWidget(projectsOnlineBox);
   mainLayout->addLayout(buttonLayout);
@@ -62,8 +66,8 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* aaccount) : QWidget(par
   connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
 }
 void GProjectsView::addProjectToLocal() {
-  if (NULL = account) {
-    QMessage::information(this, tr("warning"), tr("Please set the right account first"));
+  if (NULL == m_account) {
+    QMessageBox::information(this, tr("warning"), tr("Please set the right account first"));
     return;
   }
   emit workingStatusChanged(tr("start"), tr("clone the repository"));
@@ -120,15 +124,16 @@ void GProjectsView::removeProjectInLocal() {
     bool result = m_command->removeGitDir(tmpList[1].trimmed()); 
     qDebug() << "remove result:" << result;
     /*******also can remove the projects on disk***************/
+    emit removeProject(tmpList[1].trimmed());
     delete item;
     it++; 
   }
 }
-void GProjectsView::setProjectsLocalHash(const QHash<QString, QString>& projectLocalHash)
+void GProjectsView::setProjectsLocalHash(const QHash<QString, QString>& projectsLocalHash)
 {
   m_projectsLocalHash = projectsLocalHash;
 }
-QHash<QString, QString> GProjectsView:: projectLocalHash() 
+QHash<QString, QString> GProjectsView:: projectsLocalHash() 
 {
   return m_projectsLocalHash;
 }
@@ -155,6 +160,10 @@ void GProjectsView::onItemDoubleClicked(QListWidgetItem* project)
 void GProjectsView::setProjectsOnlineEnabled(bool isEnable)
 {
   m_projectsOnline->setEnabled(isEnable);
+}
+void GProjectsView::setProjectsLocalEnabled(bool isEnable)
+{
+  m_projectsLocal->setEnabled(isEnable);
 }
 void GProjectsView::onProcessFinished()
 {
