@@ -25,6 +25,7 @@
 #include "gcommitview.h"
 #include "gbranchview.h"
 #include "gcodeview.h"
+#include "gprojectsview.h"
 #include "gitcommand.h"
 
 #include "data/account.h"
@@ -135,6 +136,7 @@ void GMainWindow::saveSettings(){
   m_settings.setValue("account/password", m_account->password());
   
   QHash<QString, QVariant> projectsHash;
+  m_projectsLocalHash = m_projectsWidget->projectsLocalHash();
   QHash<QString, QString>::const_iterator it = m_projectsLocalHash.constBegin();
   while (it != m_projectsLocalHash.constEnd()) {
     projectsHash.insert(it.key(), QVariant(it.value()));
@@ -153,45 +155,8 @@ void GMainWindow::closeEvent(QCloseEvent *event)
   event->accept();
 }
 void GMainWindow::buildGui() {
-  m_projectsOnline = new QListWidget(this);
-  m_projectsLocal = new QListWidget(this);
-
-  m_addButton = new QPushButton(this);
-  m_rmButton = new QPushButton(this);
-
-  m_addButton->setIcon(QIcon(tr(":/icons/right.png")));
-  m_rmButton->setIcon(QIcon(tr(":/icons/left.png")));
-
-  m_addButton->setIconSize(QSize(40, 40));
-  m_rmButton->setIconSize(QSize(40, 40));
-  m_addButton->setFixedSize(QSize(37,37));
-  m_rmButton->setFixedSize(QSize(37, 37));
-
-  QHBoxLayout* mainLayout = new QHBoxLayout;
-  QVBoxLayout* buttonLayout = new QVBoxLayout;
-
-  buttonLayout->addWidget(m_addButton);
-  buttonLayout->addWidget(m_rmButton);
-
-  QGroupBox* projectsOnlineBox = new QGroupBox(this);
-  projectsOnlineBox->setTitle(tr("projectsOnLine"));
-  QHBoxLayout* groupLayout = new QHBoxLayout;
-  groupLayout->addWidget(m_projectsOnline);
-  projectsOnlineBox->setLayout(groupLayout);
-
-  QGroupBox* projectsLocalBox = new QGroupBox(this);
-  projectsLocalBox->setTitle(tr("projectsLocal"));
-  QHBoxLayout* groupLayout1 = new QHBoxLayout;
-  groupLayout1->addWidget(m_projectsLocal);
-  projectsLocalBox->setLayout(groupLayout1);
-
-  mainLayout->addWidget(projectsOnlineBox);
-  mainLayout->addLayout(buttonLayout);
-  mainLayout->addWidget(projectsLocalBox);
-  
-  m_widgets = new QStackedWidget(this);
-  m_projectsWidget = new QWidget(this);
   //this three widget is controlled by myself can be delete and new by myself;
+  m_projectsWidget = new GProjectsView(this, m_account);
   m_codeViewWidget = m_branchViewWidget = m_commitViewWidget = NULL;
   /*
   m_codeViewWidget = new QWidget;
@@ -206,22 +171,12 @@ void GMainWindow::buildGui() {
 */
   m_widgets->setCurrentIndex(0);
 
-  m_projectsWidget->setLayout(mainLayout);
+//  m_projectsWidget->setLayout(mainLayout);
   setCentralWidget(m_widgets);
-  
-  connect(m_addButton, SIGNAL(clicked()), this, SLOT(addProjectToLocal()));
-  connect(m_rmButton, SIGNAL(clicked()), this, SLOT(removeProjectInLocal()));
-
-  connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(openProject(QListWidgetItem*)));
-
+  connect(m_projectsWidget, SIGNAL(openProject(QString&)), this, SLOT(openProject(QString&)));
+  connect(m_projectsWidget, SIGNAL(workingStatusChanged(QString&, QString&)), this, SLOT(onWorkingStatusChanged(QString&, QString&)));
 }
 void GMainWindow::initProjectItems() {
-  /***************just get some tests******************
-  QListWidgetItem* projectItem = new QListWidgetItem(m_projectsOnline);
-  projectItem->setText(tr("new_git"));
-  QListWidgetItem* projectItem1 = new QListWidgetItem(m_projectsOnline);
-  projectItem1->setText(tr("git_myself"));
-  **************************end************************/
   if ("" == m_account->username()) {
     QMessageBox::information(this, tr("warning"), tr("please set the name and the passwordfirst"));
     qDebug() << "error, no usrname and password is set";
@@ -233,12 +188,10 @@ void GMainWindow::initProjectItems() {
   m_reposAPI->setUsername(m_account->username());
   m_reposAPI->startConnect();
   connect(m_reposAPI, SIGNAL(complete(GRepositoryAPI::ResultCode)), this, SLOT(onAccessComplete(GRepositoryAPI::ResultCode)));
-  //connect(m_command->getProcess(), SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onProcessFinished(int, QProcess::ExitStatus)));
-  connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
-  m_projectsOnline->setEnabled(false);
+  m_projectsWidget->setProjectsOnlineEnabled(false);
   this->statusBar()->showMessage(tr("connectting ..."));
 
-  /****************projects local************************/
+  /****************projects local************************
   QHash<QString, QString>::const_iterator it = m_projectsLocalHash.constBegin();
   while (it != m_projectsLocalHash.constEnd()) {
     QListWidgetItem* project = new QListWidgetItem(m_projectsLocal);
@@ -246,16 +199,9 @@ void GMainWindow::initProjectItems() {
     project->setText(text);
     ++ it;
   }
-  /*******************************deal in the slot****************
-  qDebug() << "after connect";
-  qDebug() << m_api.getReposNum();
-  QHash<QString, QString> reposHash = m_api.getRepos();
-  QHash<QString, QString>::const_iterator it = reposHash.constBegin();
-  while (it != reposHash.constEnd()) {
-    qDebug() << it.key() << ":" << it.value();
-    it ++ ;
-  }
-  *******************************end****************************/
+  *******************************************************/
+  m_projectsWidget->setProjectsLocalHash(m_projectsLocalHash);
+  m_projectsWidget->initProjectsItems(m_projectsLocalHash, tr("local"));
 }
 void GMainWindow::addProjectToLocal() {
   /*************test, projects' name get from the settings*****************/
@@ -365,12 +311,16 @@ void GMainWindow::onBranchViewActionTriggered() {
 void GMainWindow::onCommitViewActionTriggered() {
   m_widgets->setCurrentIndex(2);
 }
-void GMainWindow::openProject(QListWidgetItem* project) {
-  if (NULL != m_currentRepo) {
+void GMainWindow::openProject(const QString& reposWorkdir) {
+
+  if (NULL != m_currentRepo && reposWorkdir != git_repository_workdir(m_currentRepo)) {
     git_repository_free(m_currentRepo);
   }
-  QStringList tmpList = (project->text()).split(":");
-  QString reposPath = tmpList[1].trimmed();
+  else if (NULL != m_currentRepo && reposWorkdir == git_repository_workdir(m_currentRepo)) {
+    m_widgets->setCurrentIndex(1);
+    qDebug() << "repository has been opened";
+    return;
+  }
   int error = git_repository_open(&m_currentRepo, reposPath.toLocal8Bit().constData());
   qDebug() << project->text();
   if (error < GIT_SUCCESS) {
@@ -378,7 +328,6 @@ void GMainWindow::openProject(QListWidgetItem* project) {
     m_currentRepo = NULL;
     return;
   }
-
   updateView();
   m_widgets->setCurrentIndex(1);
 }
@@ -401,61 +350,50 @@ void GMainWindow::updateView() {
     delete m_branchViewWidget;
   }
   */
-  m_codeViewWidget = new QWidget;
-  m_branchViewWidget = new QWidget;
-  m_commitViewWidget = new QWidget;
+  //m_codeViewWidget = new QWidget;
+  //m_branchViewWidget = new QWidget;
+  //m_commitViewWidget = new QWidget;
 
-  GCommitView* m_commitView = new GCommitView(this, m_currentRepo);
-  GCodeView* m_codeView = new GCodeView(this, m_currentRepo);
-  GBranchView* m_branchView = new GBranchView(this, m_currentRepo);
+  m_codeViewWidget = new GCommitView(this, m_currentRepo);
+  m_commitViewWidget = new GCommitView(this, m_currentRepo);
+  m_branchViewWidget = new GBranchView(this, m_currentRepo);
+
+  //GCommitView* m_commitView = new GCommitView(this, m_currentRepo);
+  //GCodeView* m_codeView = new GCodeView(this, m_currentRepo);
+  //GBranchView* m_branchView = new GBranchView(this, m_currentRepo);
 
   m_branchView->setPassword(m_account->password());
-//here we don't use the button, just show here, function maybe realize later
-  /*
-  QPushButton* m_button1 = new QPushButton(tr("Merge"), m_commitView);
-  QPushButton* m_button2 = new QPushButton(tr("Settings"), m_commitView);
-
-  QHBoxLayout* buttonLayout1 = new QHBoxLayout;
-  QHBoxLayout* buttonLayout2 = new QHBoxLayout;
-  QHBoxLayout* buttonLayout3 = new QHBoxLayout;
-  buttonLayout1->addStretch(1);
-  buttonLayout1->addWidget(m_button1);
-  buttonLayout1->addWidget(m_button2);
-  buttonLayout2->addStretch(1);
-  buttonLayout2->addWidget(m_button1);
-  buttonLayout2->addWidget(m_button2);
-  buttonLayout3->addStretch(1);
-  buttonLayout3->addWidget(m_button1);
-  buttonLayout3->addWidget(m_button2);
-*/
-  QVBoxLayout* commitLayout = new QVBoxLayout;
-  QVBoxLayout* codeLayout = new QVBoxLayout;
-  QVBoxLayout* branchLayout = new QVBoxLayout;
+  //QVBoxLayout* commitLayout = new QVBoxLayout;
+  //QVBoxLayout* codeLayout = new QVBoxLayout;
+  //QVBoxLayout* branchLayout = new QVBoxLayout;
   
   //codeLayout->addLayout(buttonLayout1);
-  codeLayout->addWidget(m_codeView);
+  //codeLayout->addWidget(m_codeView);
  // commitLayout->addLayout(buttonLayout2);
-  commitLayout->addWidget(m_commitView);
+ // commitLayout->addWidget(m_commitView);
  // branchLayout->addLayout(buttonLayout3);
-  branchLayout->addWidget(m_branchView);
+  //branchLayout->addWidget(m_branchView);
 
-  m_codeViewWidget->setLayout(codeLayout);
-  m_branchViewWidget->setLayout(branchLayout);
-  m_commitViewWidget->setLayout(commitLayout); 
+  //m_codeViewWidget->setLayout(codeLayout);
+  //m_branchViewWidget->setLayout(branchLayout);
+  //m_commitViewWidget->setLayout(commitLayout); 
   
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);
   m_widgets->insertWidget(3, m_branchViewWidget);
-  connect(m_codeView, SIGNAL(newCommit()), m_commitView, SLOT(updateCommitView()));
+  //connect(m_codeView, SIGNAL(newCommit()), m_commitView, SLOT(updateCommitView()));
+  connect(m_codeViewWidget, SIGNAL(newCommit()), m_commitViewWidget, SLOT(updateCommitView()));
+  connect(m_branchViewWidget, SIGNAL(renewObject()), this, SLOT(onBranchViewChanged()));
   
-  connect(m_branchView, SIGNAL(renewObject()), this, SLOT(onBranchViewChanged()));
+  //connect(m_branchView, SIGNAL(renewObject()), this, SLOT(onBranchViewChanged()));
 }
 void GMainWindow::onBranchViewChanged() {
   updateView();
   m_widgets->setCurrentIndex(3);
 }
 void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
-  m_projectsOnline->setEnabled(true); 
+  //m_projectsOnline->setEnabled(true); 
+  m_projectsWidget->setProjectsOnlineEnabled(true);
   this->statusBar()->showMessage("");
   switch (resultCode)
   {
@@ -463,6 +401,7 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
       {
         qDebug() << m_reposAPI->getReposNum();
         QHash<QString, QString> reposHash = m_reposAPI->getRepos();
+        /*
         QHash<QString, QString>::const_iterator it = reposHash.constBegin();
         while (it != reposHash.constEnd()) {
           qDebug() << it.key() << ":" << it.value();
@@ -471,6 +410,8 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
           projectItem->setText(text);
           it ++ ;
         }
+        */
+        m_projectsWidget->initProjectsItems(reposHash, QString("online"));
         break;
       }
     case GRepositoryAPI::ERROR:
@@ -487,20 +428,23 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
       }
   }
 }
-void GMainWindow::onProcessFinished(/*int exitCode, QProcess::ExitStatus exitStatus*/) {
+/*
+void GMainWindow::onProcessFinished() {
   qDebug() << "finished the process!!";
-  /*
-  if (exitStatus == QProcess::CrashExit)
-  {
-    qDebug() << "crashed";
+  m_projectsLocal->setEnabled(true);
+  statusBar()->showMessage("");
+  resetConfigUrl();
+}
+*/
+void GMainWindow::onWorkingStatusChanged(const QString& status, const QString& message)
+{
+  if (status == "start") {
+    statusBar()->showMessage(message);
   }
-  else {*/
-    m_projectsLocal->setEnabled(true);
+  if (status == "end") {
     statusBar()->showMessage("");
-    resetConfigUrl();
-    //QString workdir = QString(git_repository_workdir());
-    //freeWidgets();
- // }
+  }
+  //to deal with more status
 }
 void GMainWindow::freeWidgets() {
    //free the memory first
@@ -510,11 +454,13 @@ void GMainWindow::freeWidgets() {
     m_commitViewWidget = NULL;
   }
   if (NULL != m_codeViewWidget) {
+    disconnect(m_codeViewWidget, 0, 0, 0);
     m_widgets->removeWidget(m_codeViewWidget);
     delete m_codeViewWidget;
     m_codeViewWidget = NULL;
   }
   if (NULL != m_branchViewWidget) {
+    disconnect(m_branchViewWidget, 0, 0, 0);
     m_widgets->removeWidget(m_branchViewWidget);
     delete m_branchViewWidget;
     m_branchViewWidget = NULL;

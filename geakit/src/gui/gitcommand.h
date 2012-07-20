@@ -23,6 +23,8 @@ class GitCommand : public QThread
     void createRemote(const QString& remoteName, const QString& remoteUrl);
     void removeRemote(const QString& remoteName);
     void gitCheckout(const QString& shaId);
+    void gitClone(const QString& url);
+    void gitResetConfigUrl(const QString& url);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
     void gitReverse();
@@ -45,5 +47,8 @@ class GitCommand : public QThread
     git_repository* m_repo;
 //    bool m_ispasswordNeeded;
 //    QString m_password;
+    //to reset the config url
+    bool m_shouldResetTheUrl;
+    QString m_projectName;
 };
 #endif

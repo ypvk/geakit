@@ -11,8 +11,7 @@ GitCommand::GitCommand(QObject* parent, const QString& workDir) : QThread(parent
   m_process->setEnvironment(env);
 
   m_waitTime = 10000;//default waitfor 10s;
-//  m_ispasswordNeeded = false;
-  
+  m_shouldResetTheUrl = false;
   connect(m_process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(onProcessStateChanged(QProcess::ProcessState)));
   connect(m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(redFromStdOut()));
   connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(redFromStdErr()));
@@ -42,8 +41,12 @@ void GitCommand::processFinished(int exitCode, QProcess::ExitStatus exitStatus) 
   else 
   {
     qDebug() << "in the process, exitCode: " << exitCode;
-    emit finishedProcess();
+    if (shouldResetTheUrl) {
+      QString dir = QDir::toNativeSeparators(m_workDir + "/" + m_projectName);
+      gitResetConfigUrl(dir);
+      shouldResetTheUrl = false;
   }
+    emit finishedProcess();
 }
 void GitCommand::onProcessStateChanged(QProcess::ProcessState processState) {
   qDebug() << "status: " << processState;
@@ -231,6 +234,50 @@ void GitCommand::gitCheckout(const QString& shaId) {
   this->setWorkDir(workDir);
   QString cmd = QString("git checkout %1").arg(shaId);
   this->execute(cmd);
+}
+void GitCommand::gitClone(const QString& projectName, const QString& url)
+{
+  QString cmd = QString("git clone %1").arg(url);
+  qDebug() << "cloning ... ";
+  //do it asycronize
+  m_shouldResetTheUrl = true;
+  m_projectName = projectName;
+
+  this->setWaitTime(0);
+  this->execute(cmd);
+}
+void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
+{
+  git_repository* tmpRepos;
+  git_config* tmpConfig;
+  int error = git_repository_open(&tmpRepos, reposWorkdir.toLocal8Bit().constData());
+  if ( error < GIT_SUCCESS) {
+    qDebug() << "open repository " << m_latestUpdatedRepo;
+    return;
+  }
+  error = git_repository_config(&tmpConfig, tmpRepos);
+  if ( error < GIT_SUCCESS) {
+    qDebug() << "open config failed";
+  }
+  const char* name = "remote.origin.url";
+  const char* value;
+  error = git_config_get_string(tmpConfig, name, &value);
+  if (error == GIT_SUCCESS) {
+    qDebug() << name << ": " << value << endl;
+  }
+  QString url(value);
+  //remove the password in the url
+  QRegExp rx = QRegExp("(:[^//].+)?@");
+  int pos = url.indexOf(rx);
+  if (pos >= 0) {
+    //qDebug() << rx.cap(1);
+    url.replace(rx.cap(1), "");
+  }
+  //now set the value to the config file
+  error = git_config_set_string(tmpConfig, name, url.toLocal8Bit().constData());
+  //free the memory
+  git_config_free(tmpConfig);
+  git_repository_free(tmpRepos);
 }
 
 GitCommand::~GitCommand() {

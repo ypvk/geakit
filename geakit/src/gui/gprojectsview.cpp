@@ -7,8 +7,9 @@
 #include <QVBoxLayout>
 #include <QGroupBox>
 #include <QDebug>
+#include <QDir>
 
-GProjectsView::GProjectsView (QWidget* parent) : QWidget(parent)
+GProjectsView::GProjectsView (QWidget* parent, GAccount* aaccount) : QWidget(parent), m_account(account)
 {
   //init
   m_command = new GitCommand(this);
@@ -57,10 +58,16 @@ GProjectsView::GProjectsView (QWidget* parent) : QWidget(parent)
   connect(m_addButton, SIGNAL(clicked()), this, SLOT(addProjectToLocal()));
   connect(m_rmButton, SIGNAL(clicked()), this, SLOT(removeProjectInLocal()));
 
-  connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(openProject(QListWidgetItem*)));
+  connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onItemDoubleClicked(QListWidgetItem*)));
+  connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
 }
 void GProjectsView::addProjectToLocal() {
-  emit onWorking(tr("clone the repository"));
+  if (NULL = account) {
+    QMessage::information(this, tr("warning"), tr("Please set the right account first"));
+    return;
+  }
+  emit workingStatusChanged(tr("start"), tr("clone the repository"));
+  //start 
   QList<QListWidgetItem* > selectedProjects = m_projectsOnline->selectedItems();
   QList<QListWidgetItem*>::iterator it = selectedProjects.begin();
   while (it != selectedProjects.end()) {
@@ -72,7 +79,7 @@ void GProjectsView::addProjectToLocal() {
     if (pos < 0) return;
     QString projectName = rx.cap(1);
     QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping/yp/git"));
-    QString path = dirName + "/" + projectName;
+    QString path = QDir::toNativeSeparators(dirName + "/" + projectName);
     //save the value
     if (m_projectsLocalHash.value(projectName) != "") {
       QMessageBox::warning(this, tr("warning"), tr("projects has been here, try another place"));
@@ -84,28 +91,16 @@ void GProjectsView::addProjectToLocal() {
     m_command->setWorkDir(dirName);
     //here use https://name@github.com/name/repos_name.git as the url;
     QString reposUrl = QString("https://%1:%3@github.com/%1/%2.git").arg(m_account->username()).arg(projectName).arg(m_account->password());
-    //reposUrl = reposUrl + projectName + ".git";
-    qDebug() << reposUrl;
-    QString cmd = QString("git clone %1").arg(reposUrl);
-    qDebug() << cmd;
-    //add tips
-    this->statusBar()->showMessage(tr("clone the repos"));
-    //m_command->setCmd(cmd);
-    //do it asycronize
-    m_command->setWaitTime(0);
-    m_command->execute(cmd);
+    m_command->gitClone(projectName, reposUrl);
     m_projectsLocal->setEnabled(false);
-    //add the latestUpdateRepos String to reset the remote url in the config file(remove the password)
-    m_latestUpdatedRepo = projectName;
-    //qDebug() << m_command->output();
-   // this->statusBar()->showMessage("");
     QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
     QString tmpText = QString("%1:\t%2/%1").arg(projectName).arg(dirName);
     item->setText(tmpText);
     m_projectsLocal->addItem(item);
     it++;
   }
-  emit end();
+  //end
+  //emit workingStatusChanged(tr("end"), "");
 }
 void GProjectsView::removeProjectInLocal() {
   QList<QListWidgetItem* > selectedProjects = m_projectsLocal->selectedItems();
@@ -129,11 +124,11 @@ void GProjectsView::removeProjectInLocal() {
     it++; 
   }
 }
-void GProjectsView::setProjectLocalHash(const QHash<QString, QString>& projectLocalHash)
+void GProjectsView::setProjectsLocalHash(const QHash<QString, QString>& projectLocalHash)
 {
   m_projectsLocalHash = projectsLocalHash;
 }
-QHash projectLocalHash() 
+QHash<QString, QString> GProjectsView:: projectLocalHash() 
 {
   return m_projectsLocalHash;
 }
@@ -150,4 +145,23 @@ void GProjectsView::initProjectsItems(const QHash<QString, QString>& projectOnli
     projectItem->setText(text);
     it ++;
   }
+}
+void GProjectsView::onItemDoubleClicked(QListWidgetItem* project)
+{
+  QStringList tmpList = (project->text()).split(":");
+  QString reposPath = tmpList[1].trimmed();
+  emit openProject(reposPath);
+}
+void GProjectsView::setProjectsOnlineEnabled(bool isEnable)
+{
+  m_projectsOnline->setEnabled(isEnable);
+}
+void GProjectsView::onProcessFinished()
+{
+  m_projectsLocal->setEnabled(true);
+  emit workingStatusChanged(tr("end"), "");
+
+}
+GProjectsView::~GProjectsView() 
+{
 }

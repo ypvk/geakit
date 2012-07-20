@@ -52,11 +52,11 @@ class GMainWindow :public QMainWindow
     git_config* m_config;
     GAccount* m_account;
     
-    QListWidget* m_projectsOnline;
-    QListWidget* m_projectsLocal;
+//    QListWidget* m_projectsOnline;
+//    QListWidget* m_projectsLocal;
 
-    QPushButton* m_addButton;
-    QPushButton* m_rmButton;
+//    QPushButton* m_addButton;
+//    QPushButton* m_rmButton;
 
     QToolBar* m_toolBar;
     QAction* m_projectsAction;
@@ -80,7 +80,7 @@ class GMainWindow :public QMainWindow
 //    GBranchView* m_branchView;
     
     git_repository* m_currentRepo;
-    QString m_latestUpdatedRepo;
+//    QString m_latestUpdatedRepo;
   
   private slots:
     void onSettingsActionTriggered();
@@ -92,10 +92,12 @@ class GMainWindow :public QMainWindow
 
     void addProjectToLocal();
     void removeProjectInLocal();
-    void openProject(QListWidgetItem* project);
+    //void openProject(QListWidgetItem* project);
+    void openProject(const QString& reposWorkdir);
     void updateView();
     void onBranchViewChanged();
     void onAccessComplete(GRepositoryAPI::ResultCode resultCode);
+    void onWorkingStatusChanged(const QString& status, const QString& message);
     void onProcessFinished(/*int exitCode, QProcess::ExitStatus exitStatus*/);
   private:
     void setupMenus();
