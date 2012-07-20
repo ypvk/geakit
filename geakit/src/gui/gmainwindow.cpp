@@ -239,9 +239,6 @@ void GMainWindow::initProjectItems() {
   this->statusBar()->showMessage(tr("connectting ..."));
 
   /****************projects local************************/
-  /**********get one test*******************/
-  m_projectsLocalHash.insert("new_git", "/home/yuping/yp/git/new_git");
-  /**********end test***********************/
   QHash<QString, QString>::const_iterator it = m_projectsLocalHash.constBegin();
   while (it != m_projectsLocalHash.constEnd()) {
     QListWidgetItem* project = new QListWidgetItem(m_projectsLocal);
