@@ -29,7 +29,6 @@
 #include "gitcommand.h"
 
 #include "data/account.h"
-#include <iostream>
 
 GMainWindow::GMainWindow(QWidget* parent):QMainWindow(parent), ui(new Ui::GMainWindow)
 {
@@ -256,9 +255,9 @@ void GMainWindow::updateView() {
   m_codeViewWidget = new GCodeView(this, m_currentRepo);
   m_commitViewWidget = new GCommitView(this, m_currentRepo);
   m_branchViewWidget = new GBranchView(this, m_currentRepo);
+ 
 
-
-  m_branchViewWidget->setPassword(m_account->password());
+//  m_branchViewWidget->setPassword(m_account->password());
   
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);

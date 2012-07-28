@@ -5,8 +5,8 @@
 #include <QDebug>
 #include "grepositoryapi.h"
 
-const QString url = "https://github.com/api/v2/json/repos/show/";
-const int timeToRun = 10000;//10s to connect and run
+static const QString url = "https://api.github.com/users/%1/repos";
+static const int timeToRun = 10000;//10s to connect and run
 
 GRepositoryAPI::GRepositoryAPI(QNetworkAccessManager* manager) : m_manager(manager) {
   m_parser = new QJson::Parser;
@@ -25,11 +25,11 @@ void GRepositoryAPI::parseFinished(QNetworkReply* reply) {
       {
         m_repos.clear();
         QString json = reply->readAll();
-       // qDebug() << json;
+        //qDebug() << json;
         bool ok;
-        QVariantMap result = m_parser->parse(json.toAscii(), &ok).toMap();
+        QVariantList reposList = m_parser->parse(json.toAscii(), &ok).toList();
         if (ok) {
-          QVariantList reposList = result["repositories"].toList();
+          //QVariantList reposList = result.toList();
           m_reposNum = reposList.size();
           foreach(QVariant repos, reposList) {
             QVariantMap reposMap = repos.toMap();
@@ -55,7 +55,7 @@ void GRepositoryAPI::parseFinished(QNetworkReply* reply) {
 }
 void GRepositoryAPI::startConnect() {
   m_timeout->start(timeToRun);
-  QNetworkRequest request = QNetworkRequest(QUrl(url + m_username));
+  QNetworkRequest request = QNetworkRequest(QUrl(QString(url).arg(m_username)));
 
   m_manager->get(request);
 }

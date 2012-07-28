@@ -9,6 +9,7 @@ class QGroupBox;
 class QPushButton;
 class GitCommand;
 class QComboBox;
+class QVBoxLayout;
 
 class GBranchView : public QWidget
 {
@@ -30,6 +31,8 @@ signals:
     void onRmBranchButtonClicked(int id);
   private:
     QString getRemoteUrl(const QString& remoteName);
+    void setupLocalBranchsArea();
+    void setupRemoteBranchsArea(QVBoxLayout* layout);
   private:
     git_repository* m_repo;
     QPushButton* m_pushButton;

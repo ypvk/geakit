@@ -28,6 +28,9 @@ class GitCommand : public QThread
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
     void gitReverse();
+    QString gitRefHead();
+    QStringList gitRefs();
+    QStringList gitRemoteNames();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
   signals:

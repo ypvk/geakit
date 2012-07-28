@@ -62,34 +62,6 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   connect(m_fileList, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onItemClicked(QTreeWidgetItem*, int)));
 
   m_command = new GitCommand(this, m_workdirRoot);
-  /****************end gui init*************************/
-  /**********************index test********************
-  git_index* index;
-  git_index_entry* entry;
-
-  git_repository_index(&index, m_repos);
-
-  int error;
-:  //TODO something if error
-  error =  git_index_read(index);
-  int ecount = git_index_entrycount(index);
-
-  for (int i = 0; i < ecount; i++) {
-    entry = git_index_get(index, i);
-  //  QListWidgetItem* file = new QListWidgetItem(m_fileList);
-   // file->setText(QString(entry->path));
-    int status_flags;
-   // error = git_status_file(&status_flags, m_repos, entry->path);
-    status_flags = git_index_entry_stage(entry);
-    qDebug() << status_flags;
-    qDebug() <<"flag:" << entry->flags;
-    qDebug() <<"flags extended: " << entry->flags_extended;
-    qDebug() << entry->path;
-   // qDebug() << entry->mtime.seconds;
-   // qDebug() << entry->file_size;
-  }
-  git_index_free(index);
-**********************************end*****************/
   git_tree* head_tree;
   //get the head commit
   git_reference* head; 
@@ -98,117 +70,12 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   char headCommitId[41] = {0};
   git_oid_fmt(headCommitId, refoid);
   m_commitOid = QString(headCommitId);
-  /*
-  git_commit* m_commit;
-  error = git_commit_lookup(&m_commit, m_repos, refoid);
-  error = git_commit_tree(&head_tree, m_commit);
-  int num = git_tree_entrycount(head_tree);
-  const git_oid* tree_id = git_tree_id(head_tree);
-  char treeIdStr[41] = {0};
-  git_oid_fmt(treeIdStr, tree_id); 
-  m_commitTreeOid = QString(treeIdStr);//set the commit tree oid, used in the commit function
-  */
-/*
-  for (int i = 0; i < num; i++) {
-    const git_tree_entry* entry = git_tree_entry_byindex(head_tree, i);
-    qDebug() << git_tree_entry_name(entry);
-    git_otype otype = git_tree_entry_type(entry);
-    if (otype == GIT_OBJ_TREE)
-      qDebug() << " is subtree";
-    qDebug() << "entry type is : " << git_object_type2string(git_tree_entry_type(entry));
-  }
-  git_commit_free(m_commit);
-  git_tree_free(head_tree);
-  git_reference_free(head);
-  */
-  /*
-  git_odb* odb;
-  git_odb_object* obj;
-  git_otype otype;
-
-  char* data;
-  const char* str_type;
-
-  git_reference* head;//head reference or said tree
-  error = git_repository_head(&head, m_repos);
-  const git_oid* headOid = git_reference_oid(head);
-  git_tree* m_tree;
-  error = git_commit_tree(&m_tree, head);
-
-
-  error = git_repository_odb(&odb, m_repos);
-
-  error = git_odb_read(&obj, odb, headOid);
-  data = (char*)git_odb_object_data(obj);
-  otype = git_odb_object_type(obj);
-
-  str_type = git_object_type2string(otype);
-
-  qDebug() << "object length  and type is " << (int)git_odb_object_size(obj) << " " << str_type;
-  git_reference_free(head);
-  git_odb_object_free(obj);
-  git_odb_free(odb);
-  */
-}  
   
+}
 GCodeView::~GCodeView() {
 }
 
 void GCodeView::gitAdd() {
-  /******************use libgit2 instead of QProcess(update the index object)*************
-  const QString cmdHead = "git add ";
-  QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
-  while(it != m_selectedItems.end()) {
-    qDebug() << cmdHead + m_tmpRoot + "/" + (*it)->text(0);
-    m_command->execute(cmdHead + m_tmpRoot + "/" + (*it)->text(0));
-    ++it;
-  }
-  //emit the repository changed and update the data
-  emit reposDataChanged();
-  QDir dir(m_workdirRoot + m_tmpRoot);
-  updateView(dir);
-  ******************************************************************************************/
-  /****************rewrite******************************************
-  git_index* m_index;
-  int error;
-  error = git_repository_index(&m_index, m_repos);
-  QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
-  while(it != m_selectedItems.end()) {
-    //first get the path
-   // char* path;
-
-    
-    if (m_tmpRoot == "") {
-      QString filePath = (*it)->text(0);
-      qDebug() << filePath;
-      path = new char[filePath.size() + 1];
-      strcpy(path, filePath.toLocal8Bit().constData());
-    }
-    else {
-      QString filePath = m_tmpRoot + "/" + (*it)->text(0);
-      path = new char[filePath.size() + 1];
-      strcpy(path, filePath.toLocal8Bit().constData());
-  }
-  
-   // qDebug() << "selected path is " << path;
-    if ((*it)->data(0, Qt::WhatsThisRole).toString() == "dir") {
-      qDebug() << "is dir";
-      gitAddDirectory((*it)->text(0));
-    }
-    else {
-    int error;
-    error = git_index_add(m_index, path, (GIT_IDXENTRY_ADDED & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT);
-    if (error < GIT_SUCCESS)qDebug() << "add failue";
-    error = git_index_write(m_index);
-    delete[] path;
-    }
-
-    it ++;
-  } 
-  git_index_free(m_index); 
-  QDir dir(m_workdirRoot + m_tmpRoot);
-  updateView(dir);
-  ***************************************************************************/
   QStringList fileNames;
   QList<QTreeWidgetItem*>::iterator it = m_selectedItems.begin();
   while(it != m_selectedItems.end()) {

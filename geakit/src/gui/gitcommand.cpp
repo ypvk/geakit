@@ -280,6 +280,46 @@ void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
   git_config_free(tmpConfig);
   git_repository_free(tmpRepos);
 }
+QStringList GitCommand::gitRefs()
+{
+  git_strarray strarray;
+  int error;
+  error = git_reference_listall(&strarray, m_repo, GIT_REF_LISTALL);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error List";
+    return QStringList();
+  }
+  QStringList branchList;
+  for (int i = 0; i < strarray.count; i++)
+  {
+    branchList << strarray.strings[i];
+  }
+  git_strarray_free(&strarray);
+  return branchList;
+}
+QString GitCommand::gitRefHead() 
+{
+  git_reference* head;
+  int error = git_repository_head(&head, m_repo);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error get the head";
+    return QString();
+  }
+  QString headName = git_reference_name(head);
+  git_reference_free(head);
+  return headName;
+}
+QStringList GitCommand::gitRemoteNames()
+{
+  QString cmd = "git remote";
+  this->setWaitTime(1000);//1s to work
+  this->execute(cmd);
+  if ("" != this->output()) {
+    QStringList remoteNames = (this->output()).trimmed().split('\n');
+    return remoteNames;
+  }
+  return QStringList();
+}
 
 GitCommand::~GitCommand() {
 }

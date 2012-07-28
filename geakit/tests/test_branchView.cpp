@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
-  const char* path = "/home/yuping/yp/git/geakit";
+  const char* path = "/Users/yuping/yp/git/test_api";
   git_repository* repos;
   int error = git_repository_open(&repos, path);
   if (error < GIT_SUCCESS) {
