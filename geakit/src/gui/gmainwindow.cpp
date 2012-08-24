@@ -112,6 +112,11 @@ void GMainWindow::loadSettings(){
   QString username = m_settings.value("account/username", "").toString();
   QString password = m_settings.value("account/password", "").toString();
   QHash<QString, QVariant> projectsHash = m_settings.value("projectsLocal", "").toHash();
+  QSize size = m_settings.value("size", QSize(800, 600)).toSize();
+  QPoint point = m_settings.value("position", QPoint(0, 0)).toPoint();
+
+  this->move(point);
+  this->resize(size);
 
   QHash<QString, QVariant>::const_iterator it = projectsHash.constBegin();
   while (it != projectsHash.constEnd()) {
@@ -135,6 +140,9 @@ void GMainWindow::saveSettings(){
   m_settings.setValue("account/username", m_account->username());
   m_settings.setValue("account/password", m_account->password());
   
+  m_settings.setValue("size", size());
+  m_settings.setValue("position", pos());
+
   QHash<QString, QVariant> projectsHash;
   m_projectsLocalHash = m_projectsWidget->projectsLocalHash();
   QHash<QString, QString>::const_iterator it = m_projectsLocalHash.constBegin();
