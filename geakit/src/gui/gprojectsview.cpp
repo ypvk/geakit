@@ -83,6 +83,10 @@ void GProjectsView::addProjectToLocal() {
     if (pos < 0) return;
     QString projectName = rx.cap(1);
     QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping/yp/git"));
+    if (dirName == "") {
+      qDebug() << "empty file name do nothing";
+      return;
+    }
     QString path = QDir::toNativeSeparators(dirName + "/" + projectName);
     //save the value
     if (m_projectsLocalHash.value(projectName) != "") {
