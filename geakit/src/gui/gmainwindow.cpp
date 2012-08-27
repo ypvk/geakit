@@ -41,6 +41,7 @@ GMainWindow::GMainWindow(QWidget* parent):QMainWindow(parent), ui(new Ui::GMainW
   buildGui();
   setupToolBar();
   initProjectItems();
+  this->setWindowTitle(tr("Geakit Git Client"));
 }
 
 GMainWindow::~GMainWindow(){
