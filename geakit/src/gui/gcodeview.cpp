@@ -12,6 +12,8 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QSplitter>
+#include <QLineEdit>
 
 #include <string>
 #include <iostream>
@@ -23,36 +25,45 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 {
   m_repos = repos;
   m_fileList = new QTreeWidget(this);
-  m_currentDir = new QLabel(this);
+  m_path = new QLabel(tr("Path:"), this);
+  m_currentDir = new QLineEdit(this);
   m_gitAddButton = new QPushButton(tr("Add"), this);
   m_gitRmButton = new QPushButton(tr("Remove"), this);
   m_gitReverseButton = new QPushButton(tr("Reverse"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
-  //m_editor = new GCodeViewEditor(this);
+  m_splitter = new QSplitter(this);
+  m_editor = new GCodeViewEditor(this);
 
-  QHBoxLayout* mainLayout = new QHBoxLayout(this);
+
+  QVBoxLayout* mainLayout = new QVBoxLayout(this);
+  QHBoxLayout* pathLayout = new QHBoxLayout;
   QVBoxLayout* buttonLayout = new QVBoxLayout;
-  QVBoxLayout* fileLayout = new QVBoxLayout;
+  QHBoxLayout* bottomLayout = new QHBoxLayout;
 
-  fileLayout->addWidget(m_currentDir);
-  fileLayout->addWidget(m_fileList);
+  pathLayout->addWidget(m_path);
+  pathLayout->addWidget(m_currentDir);
+  
 
   buttonLayout->addWidget(m_gitAddButton);
   buttonLayout->addWidget(m_gitRmButton);
   buttonLayout->addWidget(m_gitReverseButton);
   buttonLayout->addWidget(m_gitCommitButton);
   buttonLayout->addStretch(0.5);
-  mainLayout->addLayout(fileLayout);
-  mainLayout->addLayout(buttonLayout);
+
+  bottomLayout->addWidget(m_splitter);
+  bottomLayout->addLayout(buttonLayout);
+
+  mainLayout->addLayout(pathLayout);
+  mainLayout->addLayout(bottomLayout);
+
   connect(m_gitAddButton, SIGNAL(clicked()), this, SLOT(gitAdd()));
   connect(m_gitRmButton, SIGNAL(clicked()), this, SLOT(gitRm()));
   connect(m_gitCommitButton, SIGNAL(clicked()), this, SLOT(gitCommit()));
   connect(m_gitReverseButton, SIGNAL(clicked()), this, SLOT(gitReverse()));
 
- // setLayout(mainLayout);
 
-  m_fileList->setHeaderLabels(QStringList() << tr("Name") << tr("age") << tr("status"));
-  m_fileList->header()->setResizeMode(QHeaderView::ResizeToContents);
+  m_fileList->setHeaderLabels(QStringList() << tr("Name") << tr("status"));
+  m_fileList->header()->setDefaultSectionSize(400);
   QString workdir(git_repository_workdir(m_repos));
   m_workdirRoot = workdir;
   m_tmpRoot = "";
@@ -62,14 +73,14 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   connect(m_fileList, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onItemClicked(QTreeWidgetItem*, int)));
 
   m_command = new GitCommand(this, m_workdirRoot);
-  git_tree* head_tree;
+  m_command->setRepository(m_repos);
   //get the head commit
-  git_reference* head; 
-  int error = git_repository_head(&head, m_repos);
-  const git_oid* refoid = git_reference_oid(head);
-  char headCommitId[41] = {0};
-  git_oid_fmt(headCommitId, refoid);
-  m_commitOid = QString(headCommitId);
+  //git_reference* head; 
+  //int error = git_repository_head(&head, m_repos);
+  //const git_oid* refoid = git_reference_oid(head);
+  //char headCommitId[41] = {0};
+  //git_oid_fmt(headCommitId, refoid);
+  m_commitOid = m_command->gitHeadCommitOid()
   
 }
 GCodeView::~GCodeView() {
@@ -246,7 +257,7 @@ void GCodeView::gitCommit() {
   emit newCommit();
 }
 void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
-  QString name = item->text(3);
+  QString name = item->text(2);
  // qDebug() << item->text(3);
   //double clicked the dir
   if (name == "dir") {
@@ -296,7 +307,7 @@ void GCodeView::updateView(QDir& dir) {
     {
       QTreeWidgetItem* dirItem = new QTreeWidgetItem(m_fileList, QStringList() << dirList[i]);
       dirItem->setIcon(0, dirIcon);
-      dirItem->setText(3, tr("dir"));
+      dirItem->setText(2, tr("dir"));
       if (dirList[i] != "..") {
         dirItem->setCheckState(0, Qt::Unchecked);
       }
@@ -336,22 +347,22 @@ void GCodeView::updateView(QDir& dir) {
       switch(status_flags) 
       {
         case GIT_STATUS_WT_NEW :
-          fileItem->setText(2, tr("untacked"));
+          fileItem->setText(1, tr("untacked"));
           break;
         case GIT_STATUS_WT_MODIFIED :
-          fileItem->setText(2, tr("Modifiled, not update"));
+          fileItem->setText(1, tr("Modifiled, not update"));
           break;
         case GIT_STATUS_CURRENT :
-          fileItem->setText(2, tr("Current"));
+          fileItem->setText(1, tr("Current"));
           break;
         case GIT_STATUS_INDEX_NEW :
-          fileItem->setText(2, tr("new file, not commit"));
+          fileItem->setText(1, tr("new file, not commit"));
           break;
         case GIT_STATUS_INDEX_MODIFIED :
-          fileItem->setText(2, tr("modifiled, not commit"));
+          fileItem->setText(1, tr("modifiled, not commit"));
           break;
         case MY_GIT_STATUS_DELETED :
-          fileItem->setText(2, tr("deleted, not commit"));
+          fileItem->setText(1, tr("deleted, not commit"));
           m_filesToDelete << path;
           break;
       }
