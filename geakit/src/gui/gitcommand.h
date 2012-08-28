@@ -31,6 +31,7 @@ class GitCommand : public QThread
     QString gitRefHead();
     QStringList gitRefs();
     QStringList gitRemoteNames();
+    const QString gitHeadCommitOid()；
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
   signals:

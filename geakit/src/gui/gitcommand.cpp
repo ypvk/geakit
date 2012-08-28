@@ -320,6 +320,21 @@ QStringList GitCommand::gitRemoteNames()
   }
   return QStringList();
 }
+const QString GitCommand::gitHeadCommitOid()
+{
+  git_reference* head;
+  int error = git_repository_head(&head, m_repo);
+  if (error < GIT_SUCCESS)
+  { 
+    qDebug() << "error get head oid";
+    return QString();
+  }
+  const git_oid* refoid = git_reference_oid(head);
+  char headCommitId[41] = {0};
+  git_oid_fmt(headCommitId, refoid);
+  git_reference_free(head);
+  return QString(headCommitId);
+}
 
 GitCommand::~GitCommand() {
 }
