@@ -14,9 +14,9 @@
 #include <QLabel>
 #include <QSplitter>
 #include <QLineEdit>
+#include <QGroupBox>
+#include <QComboBox>
 
-#include <string>
-#include <iostream>
 
 /*************here define a new status that file delete in the index, but still on the disk******/
 #define MY_GIT_STATUS_DELETED   12
@@ -33,27 +33,37 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
   m_splitter = new QSplitter(this);
   m_editor = new GCodeViewEditor(this);
+  m_contentArea = new QGroupBox(tr("content"), this);
+  m_branches = new QComboBox(this);
 
+  QHBoxLayout* groupBoxLayout = new QHBoxLayout;
+  groupBoxLayout->addWidget(m_editor);
+  m_contentArea->setLayout(groupBoxLayout);
+  
+  m_splitter->addWidget(m_fileList);
+  m_splitter->addWidget(m_contentArea);
+  m_splitter->setOrientation(Qt::Vertical);
 
   QVBoxLayout* mainLayout = new QVBoxLayout(this);
   QHBoxLayout* pathLayout = new QHBoxLayout;
-  QVBoxLayout* buttonLayout = new QVBoxLayout;
+  QHBoxLayout* buttonLayout = new QHBoxLayout;
   QHBoxLayout* bottomLayout = new QHBoxLayout;
 
   pathLayout->addWidget(m_path);
   pathLayout->addWidget(m_currentDir);
   
-
+  buttonLayout->addWidget(m_branches);
+  buttonLayout->addStretch(0.5);
   buttonLayout->addWidget(m_gitAddButton);
   buttonLayout->addWidget(m_gitRmButton);
   buttonLayout->addWidget(m_gitReverseButton);
   buttonLayout->addWidget(m_gitCommitButton);
-  buttonLayout->addStretch(0.5);
 
   bottomLayout->addWidget(m_splitter);
-  bottomLayout->addLayout(buttonLayout);
+  //bottomLayout->addLayout(buttonLayout);
 
   mainLayout->addLayout(pathLayout);
+  mainLayout->addLayout(buttonLayout);
   mainLayout->addLayout(bottomLayout);
 
   connect(m_gitAddButton, SIGNAL(clicked()), this, SLOT(gitAdd()));
@@ -74,13 +84,14 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 
   m_command = new GitCommand(this, m_workdirRoot);
   m_command->setRepository(m_repos);
-  //get the head commit
-  //git_reference* head; 
-  //int error = git_repository_head(&head, m_repos);
-  //const git_oid* refoid = git_reference_oid(head);
-  //char headCommitId[41] = {0};
-  //git_oid_fmt(headCommitId, refoid);
-  m_commitOid = m_command->gitHeadCommitOid()
+  m_commitOid = m_command->gitHeadCommitOid();
+
+  QStringList branches = m_command->gitBranches();
+  m_branches->addItems(branches);
+  QString currentBranch = m_command->gitRefHead();
+  int index = branches.indexOf(currentBranch);
+  m_branches->setCurrentIndex(index);
+  connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
   
 }
 GCodeView::~GCodeView() {
@@ -279,10 +290,10 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
   else {
     QString fileName = item->text(0);
 //    GCodeViewEditor* m_editor = new GCodeViewEditor();
-    QPointer<GCodeViewEditor> m_editor = new GCodeViewEditor();
     QString path = m_tmpRoot == "" ? m_workdirRoot + fileName : m_workdirRoot + m_tmpRoot + "/" + fileName;
     m_editor->loadFile(path);
-    m_editor->show();
+    m_contentArea->setTitle(fileName);
+    //m_editor->show();
   }
 }
 void GCodeView::updateView(QDir& dir) {
@@ -400,4 +411,16 @@ void GCodeView::gitReverse() {
   m_command->gitReverse();
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
+}
+void GCodeView::changeToBranch(const QString& branchName)
+{
+  qDebug() <<"change to branch: " << branchName;
+  bool result = m_command->gitChangeBranch(branchName);
+  if (!result) {
+    qDebug() << "error change branch";
+    return;
+  }
+  QDir dir(m_workdirRoot);
+  updateView(dir);
+  return;
 }

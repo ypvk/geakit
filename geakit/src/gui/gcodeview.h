@@ -12,6 +12,8 @@ class QTreeWidgetItem;
 class QLabel;
 class QSplitter;
 class QLineEdit;
+class QGroupBox;
+class QComboBox;
 class GitCommand;
 class GCommitDialog;
 class GCodeViewEditor;
@@ -38,6 +40,7 @@ class GCodeView : public QWidget
     void gitReverse();
     void onItemDoubleCilcked(QTreeWidgetItem* item, int column);
     void onItemClicked(QTreeWidgetItem* item, int column);
+    void changeToBranch(const QString& branchName);
   private:
     git_repository* m_repos;//repository
     QTreeWidget* m_fileList;
@@ -55,6 +58,8 @@ class GCodeView : public QWidget
     QLabel* m_path;
     QLineEdit* m_currentDir;//current dir
     QSplitter* m_splitter;
+    QGroupBox* m_contentArea;
+    QComboBox* m_branches;
     GCodeViewEditor* m_editor;
 };
 #endif
