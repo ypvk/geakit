@@ -149,5 +149,14 @@ if(BUILD_TESTS)
 		)
 	add_executable(test_branch ${TEST_BRANCH_SRC1})
 	target_link_libraries(test_branch git2)
+	##test git command
+	set(TEST_COMMAND_SRC 
+		tests/test_gitcommand.cpp
+		src/gui/gitcommand.cpp
+		)
+	set(TEST_COMMAND_HEADS src/gui/gitcommand.h)
+	qt4_wrap_cpp(TEST_COMMAND_MOC_SRC ${TEST_COMMAND_HEADS})
+	add_executable(test_gitcommand ${TEST_COMMAND_SRC} ${TEST_COMMAND_MOC_SRC})
+	target_link_libraries(test_gitcommand git2 ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 endif()
  
