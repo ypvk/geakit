@@ -2,6 +2,9 @@
 #include <QDir>
 #include <QDebug>
 
+const static QString TAG_HEAD = "refs/tags/";
+const static QString BRANCH_HEAD = "refs/heads/";
+
 GitCommand::GitCommand(QObject* parent, const QString& workDir) : QThread(parent), m_workDir(workDir)
 {
   m_process = new QProcess(this);
@@ -280,11 +283,11 @@ void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
   git_config_free(tmpConfig);
   git_repository_free(tmpRepos);
 }
-QStringList GitCommand::gitRefs()
+QStringList GitCommand::gitRefs(git_rtype ref_type)
 {
   git_strarray strarray;
   int error;
-  error = git_reference_listall(&strarray, m_repo, GIT_REF_LISTALL);
+  error = git_reference_listall(&strarray, m_repo, ref_type);
   if (error < GIT_SUCCESS) {
     qDebug() << "error List";
     return QStringList();
@@ -297,6 +300,34 @@ QStringList GitCommand::gitRefs()
   git_strarray_free(&strarray);
   return branchList;
 }
+QStringList GitCommand::gitBranches()
+{
+  git_rtype ref_type = GIT_REF_OID;
+  QStringList all_refs = gitRefs(ref_type);
+  QStringList::const_iterator it = all_refs.constBegin();
+  QStringList branches;
+  while(it != all_refs.constEnd())
+  {
+    if (it->startsWith(BRANCH_HEAD))
+      branches << it->section('/', -1);
+    it ++;
+  }
+  return branches;
+} 
+QStringList GitCommand::gitTags()
+{
+  git_rtype ref_type = GIT_REF_OID;
+  QStringList all_refs = gitRefs(ref_type);
+  QStringList::const_iterator it = all_refs.constBegin();
+  QStringList tags;
+  while(it != all_refs.constEnd())
+  {
+    if (it->startsWith(TAG_HEAD))
+      tags << it->section('/', -1);
+    it ++;
+  }
+  return tags;
+}
 QString GitCommand::gitRefHead() 
 {
   git_reference* head;
@@ -307,7 +338,7 @@ QString GitCommand::gitRefHead()
   }
   QString headName = git_reference_name(head);
   git_reference_free(head);
-  return headName;
+  return headName.section('/', -1);
 }
 QStringList GitCommand::gitRemoteNames()
 {
@@ -334,6 +365,33 @@ const QString GitCommand::gitHeadCommitOid()
   git_oid_fmt(headCommitId, refoid);
   git_reference_free(head);
   return QString(headCommitId);
+}
+bool GitCommand::gitChangeBranch(const QString& branchName)
+{
+  git_reference* newHead;
+  int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", branchName.toLocal8Bit().constData(), 1);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error change the branch";
+    return false;
+  }  
+  git_reference_free(newHead);
+  return true;
+}
+bool GitCommand::gitDeleteBranch(const QString& branchName)
+{
+  git_reference* branch;
+  int error = git_reference_lookup(&branch, m_repo, branchName.toLocal8Bit().constData());
+  if (error < GIT_SUCCESS) {
+    qDebug() << "Can't get the branch"; 
+    return false;
+  }
+  error = git_reference_delete(branch);
+  if (error < GIT_SUCCESS) {
+    qDebug() << "can't delete";
+    return false;
+  }
+  git_reference_free(branch);
+  return true;
 }
 
 GitCommand::~GitCommand() {

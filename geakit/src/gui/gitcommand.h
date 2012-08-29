@@ -9,6 +9,7 @@
 class GitCommand : public QThread
 {
   Q_OBJECT
+
   public:
     explicit GitCommand(QObject* parent = 0, const QString& workDir = "");
     ~GitCommand();
@@ -29,9 +30,13 @@ class GitCommand : public QThread
     void gitAdd(const QStringList& fileList);
     void gitReverse();
     QString gitRefHead();
-    QStringList gitRefs();
+    QStringList gitRefs(git_rtype ref_type = GIT_REF_LISTALL);
+    QStringList gitBranches();
+    QStringList gitTags();
     QStringList gitRemoteNames();
-    const QString gitHeadCommitOid()；
+    bool gitChangeBranch(const QString& branchName);
+    bool gitDeleteBranch(const QString& branchName);
+    const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
   signals:
