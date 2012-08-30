@@ -19,6 +19,7 @@ int main (int argc, char* argv[])
   qDebug() << "4" << cmd->gitBranches();
   qDebug() << "5" << cmd->gitTags();
   qDebug() << "6" << cmd->gitRefHead();
+  qDebug() << "7" << cmd->gitRemoteBranches("origin");
   git_repository_free(repo);
   delete cmd;
   return 0;

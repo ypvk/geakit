@@ -34,6 +34,7 @@ class GitCommand : public QThread
     QStringList gitBranches();
     QStringList gitTags();
     QStringList gitRemoteNames();
+    QStringList gitRemoteBranches(const QString& remoteName);
     bool gitChangeBranch(const QString& branchName);
     bool gitDeleteBranch(const QString& branchName);
     const QString gitHeadCommitOid();

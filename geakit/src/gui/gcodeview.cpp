@@ -165,6 +165,7 @@ void GCodeView::gitRm() {
       QString filePath = m_tmpRoot + "/" + (*it++)->text(0);
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
+      
   }
     qDebug() << "selected path is " << path;
     int error;
@@ -406,8 +407,6 @@ void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
   }
 }
 void GCodeView::gitReverse() {
-  
-  m_command->setRepository(m_repos);
   m_command->gitReverse();
   QDir dir(m_workdirRoot + m_tmpRoot);
   updateView(dir);
@@ -421,6 +420,14 @@ void GCodeView::changeToBranch(const QString& branchName)
     return;
   }
   QDir dir(m_workdirRoot);
+  m_tmpRoot.clear();
   updateView(dir);
+  emit branchChanged();
   return;
+}
+void GCodeView::onBranchChanged() 
+{
+  QDir dir(m_workdirRoot);
+  m_tmpRoot.clear();
+  updateView(dir);
 }

@@ -271,11 +271,13 @@ void GMainWindow::updateView() {
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);
   m_widgets->insertWidget(3, m_branchViewWidget);
-  //connect(m_codeView, SIGNAL(newCommit()), m_commitView, SLOT(updateCommitView()));
+
+  connect(m_codeViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_codeViewWidget, SIGNAL(newCommit()), m_commitViewWidget, SLOT(updateCommitView()));
-  connect(m_branchViewWidget, SIGNAL(renewObject()), this, SLOT(onBranchViewChanged()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT());
+  connect(m_codeViewWidget, SIGNAL(branchChanged()), m_branchViewWidget, SLOT(updateView()));
   
-  //connect(m_branchView, SIGNAL(renewObject()), this, SLOT(onBranchViewChanged()));
 }
 void GMainWindow::onBranchViewChanged() {
   updateView();

@@ -27,6 +27,7 @@ class GCodeView : public QWidget
   signals:
     void reposDataChanged();
     void newCommit();
+    void branchChanged();
   private:
 //    void searchFiles();
     void gitAddDirectory(const QString& dirName);
@@ -41,6 +42,7 @@ class GCodeView : public QWidget
     void onItemDoubleCilcked(QTreeWidgetItem* item, int column);
     void onItemClicked(QTreeWidgetItem* item, int column);
     void changeToBranch(const QString& branchName);
+    void onBranchChanged();
   private:
     git_repository* m_repos;//repository
     QTreeWidget* m_fileList;

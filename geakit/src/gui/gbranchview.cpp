@@ -22,7 +22,6 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_repo = repo;
   m_mainArea = new QScrollArea(this);
   m_localBranchArea = new QGroupBox(tr("local"), this);
- // m_localBranchArea->setStyleSheet("QGroupBox {background:white;}");
   m_pushButton = new QPushButton(tr("Push"), this);
   m_fetchButton = new QPushButton(tr("Fetch"), this);
   m_remoteNames = new QComboBox(this);
@@ -35,7 +34,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
 
   m_password = "";
   QWidget* mainWidget = new QWidget(this);
-  QVBoxLayout* mainLayout = new QVBoxLayout(this);
+  m_mainLayout = new QVBoxLayout(this);
 
   //mainWidget->setStyleSheet("QWidget {background:white}");
   
@@ -49,9 +48,9 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_actionButtonLayout->addWidget(m_pushButton);
   m_actionButtonLayout->addWidget(m_fetchButton);
 
-  mainLayout->addLayout(m_actionButtonLayout);
-  mainLayout->addWidget(m_localBranchArea);
-  mainWidget->setLayout(mainLayout);
+  m_mainLayout->addLayout(m_actionButtonLayout);
+  m_mainLayout->addWidget(m_localBranchArea);
+  mainWidget->setLayout(m_mainLayout);
  
   //connect the button signal
   connect(m_pushButton, SIGNAL(clicked()), this, SLOT(onPushButtonClicked()));
@@ -59,18 +58,20 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   connect(m_newBranchButton, SIGNAL(clicked()), this, SLOT(onNewBranchButtonClicked()));
   connect(m_newRemoteButton, SIGNAL(clicked()), this, SLOT(onNewRemoteButtonClicked()));
 
-  //show all the reference branch
-  m_branchList = m_command->gitRefs();
+  updateView();
 
-  setupLocalBranchsArea();
+  ////show all the reference branch
+  //m_branchList = m_command->gitRefs();
 
-  m_remoteList = m_command->gitRemoteNames();
-  m_remoteNames->addItems(m_remoteList);
+  //setupLocalBranchsArea();
 
-//setup remoteBranchs Area
-  setupRemoteBranchsArea(mainLayout);
+  //m_remoteList = m_command->gitRemoteNames();
+  //m_remoteNames->addItems(m_remoteList);
 
-  mainLayout->addStretch(1);
+////setup remoteBranchs Area
+  //setupRemoteBranchsArea();
+
+  m_mainLayout->addStretch(1);
   m_mainArea->setWidget(mainWidget);
   
   m_mainArea->setWidgetResizable(true);
@@ -91,7 +92,7 @@ void GBranchView::onChangeButtonClicked(int id) {
     qDebug() << "error change the branch";
   }  
   git_reference_free(newHead);
-  emit renewObject();
+  emit branchChanged();
 }
 void GBranchView::onMergeButtonClicked(int id) {
   QString branchName = m_branchList[id].split("/").last();
@@ -166,11 +167,9 @@ void GBranchView::onNewBranchButtonClicked() {
       ++it;
     }
     if (!isNameExit) {
-      m_command->setRepository(m_repo);
       m_command->createBranch(branchName);
     }
   }
-  emit renewObject();
 }
 /**************delete one new branch**********/
 void GBranchView::onRmBranchButtonClicked(int id) {
@@ -185,8 +184,6 @@ void GBranchView::onRmBranchButtonClicked(int id) {
     qDebug() << "can't delete";
     return;
   }
-  branch = NULL;
-  emit renewObject();
 }
 /*************add new remote function***************/
 void GBranchView::onNewRemoteButtonClicked() {
@@ -205,38 +202,42 @@ void GBranchView::onNewRemoteButtonClicked() {
       ++it;
     }
     if (!isNameExit) {
-      m_command->setRepository(m_repo);
       m_command->createRemote(remoteName, url);
     }
   }
-  emit renewObject();
 }
-void GBranchView::setupLocalBranchsArea()
+void GBranchView::setupLocalBranchesArea()
 {
+  //free the widgets in local area
+  if (m_localBranchArea != NULL) {
+    int index = m_mainLayout->indexOf(m_localBranchArea);
+    if (index >= 0) {
+      QLayoutItem* item = m_mainLayout->takeAt(index);
+      delete item;
+      m_localBranchArea = new QGroupBox(tr("local"), this);
+      qDebug() << "renew local area";
+    }
+  }
   //get the reference head name
   QString headName = m_command->gitRefHead();
   QVBoxLayout* localLayout = new QVBoxLayout(m_localBranchArea);
 //first build the local branch
   for (int i = 0; i < m_branchList.size(); i++) {
     if (m_branchList[i] == headName) {
-      QLabel* label = new QLabel("*" + headName, this);
+      QLabel* label = new QLabel("*" + headName, m_localBranchArea);
       localLayout->addWidget(label);
       }
-    //other branchs
-    int pos = m_branchList[i].indexOf("refs/heads/");
-    if (pos >= 0 && m_branchList[i] != headName) {
+    else {
       QHBoxLayout* tmpLayout = new QHBoxLayout;
-      QLabel* label = new QLabel(m_branchList[i], this);
-      GButton* changeButton = new GButton(this, i);
+      QLabel* label = new QLabel(m_branchList[i], m_localBranchArea);
+      GButton* changeButton = new GButton(m_localBranchArea, i);
       changeButton->setText(tr("Change Here"));
-      GButton* mergeButton = new GButton(this, i);
+      GButton* mergeButton = new GButton(m_localBranchArea, i);
       mergeButton->setText(tr("Merge to main"));
-      GButton* rmBranchButton = new GButton(this, i);
+      GButton* rmBranchButton = new GButton(m_localBranchArea, i);
       rmBranchButton->setText(tr("Delete"));
 
       tmpLayout->addWidget(label);
-     // tmpLayout->addStretch(2);
-     // tmpLayout->addSt(20);
       tmpLayout->addStretch(1);
       tmpLayout->addWidget(changeButton);
       tmpLayout->addWidget(mergeButton);
@@ -253,23 +254,23 @@ void GBranchView::setupLocalBranchsArea()
     } 
   }
 }
-void GBranchView::setupRemoteBranchsArea(QVBoxLayout* layout)
+void GBranchView::setupRemoteBranchesArea()
 {
-  
+  freeRemoteArea(); 
   QStringList::const_iterator it = m_remoteList.constBegin();
   for (; it != m_remoteList.constEnd(); it++)
   {
     QGroupBox* groupBox = new QGroupBox(*it, this);
-    m_remotAreaList << groupBox;
-    layout->addWidget(groupBox);
+    m_remoteAreaList << groupBox;
+    m_mainLayout->addWidget(groupBox);
     
     QVBoxLayout* groupLayout = new QVBoxLayout(groupBox);
 
-    for (int i = 0; i < m_branchList.size(); i++) {
-      if (m_branchList[i].indexOf(*it) >= 0 && m_branchList[i].indexOf("HEAD") < 0) {
+    QStringList remoteBranches = m_remoteBranchesHash.value(*it);
+    for(int i = 0; i < remoteBranches.size(); i++) {
         QHBoxLayout* tmpLayout = new QHBoxLayout;
-        QLabel* label = new QLabel(m_branchList[i], this);
-        GButton* mergeButton = new GButton(this, i);
+        QLabel* label = new QLabel(remoteBranches[i], groupBox);
+        GButton* mergeButton = new GButton(groupBox, i);
         mergeButton->setText("Merge to Main");
         tmpLayout->addWidget(label);
         tmpLayout->addStretch(1);
@@ -279,5 +280,32 @@ void GBranchView::setupRemoteBranchsArea(QVBoxLayout* layout)
         groupLayout->addLayout(tmpLayout);
       }
     }
+}
+void GBranchView::freeRemoteArea()
+{
+  if (0 == m_remoteAreaList.size()) return;
+  QList<QGroupBox*>::const_iterator it = m_remoteAreaList.constBegin();
+  for(; it != m_remoteAreaList.constEnd(); it++) {
+    int index = m_mainLayout->indexOf(*it);
+    if (index >= 0) {
+      QLayoutItem* item = m_mainLayout->takeAt(index);
+      delete item;
+    }
   }
+  m_remoteAreaList.clear();
+}
+void GBranchView::updateView()
+{
+  m_branchList = m_command->gitBranches();
+  m_remoteList = m_command->gitRemoteNames();
+  QStringList::const_iterator it = m_remoteList.constBegin();
+  while(it != m_remoteList.constEnd()) {
+    QStringList remoteBranches = m_command->gitRemoteBranches(*it);
+    m_remoteBranchesHash.insert(*it, remoteBranches);
+    it ++;
+  }
+  m_remoteNames->clear();
+  m_remoteNames->addItems(m_remoteList);
+  setupLocalBranchesArea();
+  setupRemoteBranchesArea();
 }

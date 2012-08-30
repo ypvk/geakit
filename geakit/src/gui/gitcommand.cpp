@@ -393,6 +393,17 @@ bool GitCommand::gitDeleteBranch(const QString& branchName)
   git_reference_free(branch);
   return true;
 }
+QStringList GitCommand::gitRemoteBranches(const QString& remoteName)
+{
+  QStringList remoteBranches;
+  QStringList branches = gitRefs(GIT_REF_PACKED);
+  QStringList::const_iterator it = branches.constBegin();
+  for (; it != branches.constEnd(); it++) {
+    if ((*it).contains(remoteName))
+      remoteBranches << (*it);
+  }
+  return remoteBranches;
+}
 
 GitCommand::~GitCommand() {
 }

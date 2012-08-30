@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <git2.h>
 #include <QProcess>
+#include <QList>
+#include <QHash>
 class QScrollArea;
 class QGroupBox;
 class QPushButton;
@@ -18,8 +20,10 @@ class GBranchView : public QWidget
     explicit GBranchView(QWidget* parent = 0, git_repository* repo = 0);
     void setPassword(const QString& password);
     ~GBranchView();
-signals:
-    void renewObject();
+  signals:
+    void branchChanged();
+  public slots:
+    void updateView();
   private slots:
     void onChangeButtonClicked(int id);
     void onMergeButtonClicked(int id);
@@ -31,8 +35,9 @@ signals:
     void onRmBranchButtonClicked(int id);
   private:
     QString getRemoteUrl(const QString& remoteName);
-    void setupLocalBranchsArea();
-    void setupRemoteBranchsArea(QVBoxLayout* layout);
+    void setupLocalBranchesArea();
+    void setupRemoteBranchesArea();
+    void freeRemoteArea();
   private:
     git_repository* m_repo;
     QPushButton* m_pushButton;
@@ -40,13 +45,15 @@ signals:
     QPushButton* m_newBranchButton;
     QPushButton* m_newRemoteButton;
     QGroupBox* m_localBranchArea;
-    QList<QGroupBox*> m_remotAreaList; 
+    QList<QGroupBox*> m_remoteAreaList; 
     QScrollArea* m_mainArea;
-    GitCommand* m_command;
- //   QProcess* m_process;
     QStringList m_branchList;
     QStringList m_remoteList;
+    QHash<QString, QStringList> m_remoteBranchesHash;
     QString m_password;
     QComboBox* m_remoteNames;
+    QVBoxLayout* m_mainLayout;
+
+    GitCommand* m_command;
 };
 #endif
