@@ -6,13 +6,13 @@ class GButton : public QPushButton
 {
   Q_OBJECT
   public:
-  explicit GButton(QWidget* parent = 0, int id = 0);
+  explicit GButton(QWidget* parent = 0, const QString& branchName = "");
   ~GButton();
-signals:
-  void buttonId(int id);
-public slots:
-  void showId();
+  private slots:
+  void onButtonClicked();
+  signals:
+  void mButtonClicked(const QString& branchName);
   private:
-  int m_id;
+  QString m_branchName;
 };
 #endif

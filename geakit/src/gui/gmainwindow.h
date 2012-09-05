@@ -101,7 +101,7 @@ class GMainWindow :public QMainWindow
     void onOpenProject(const QString& reposWorkdir);
     void onRemoveProject(const QString& reposWorkdir);
     void updateView();
-    void onBranchViewChanged();
+    void updateBranchView();
     void onAccessComplete(GRepositoryAPI::ResultCode resultCode);
     void onWorkingStatusChanged(const QString& status, const QString& message);
     //void onProcessFinished([>int exitCode, QProcess::ExitStatus exitStatus<]);

@@ -35,8 +35,13 @@ class GitCommand : public QThread
     QStringList gitTags();
     QStringList gitRemoteNames();
     QStringList gitRemoteBranches(const QString& remoteName);
+    QList<QStringList> gitCommitDatas();
     bool gitChangeBranch(const QString& branchName);
     bool gitDeleteBranch(const QString& branchName);
+    bool gitMergeBranch(const QString& branchName);
+    bool gitPush(const QString& url);
+    bool gitFetch(const QString& url);
+    QString gitRemoteUrl(const QString& remoteName);
     const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;

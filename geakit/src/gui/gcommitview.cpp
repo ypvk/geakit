@@ -1,4 +1,5 @@
 #include "gcommitview.h"
+#include "gitcommand.h"
 #include <QtWebKit/QWebView>
 #include <QtGui>
 #include <QMessageBox>
@@ -13,6 +14,10 @@ GCommitView::GCommitView(QWidget* parent, git_repository* m_repos) : QWidget(par
  // m_frame = new QFrame(this);
   m_webView = new QWebView(this);
   m_splitter = new QSplitter(this);
+
+  m_workdir = git_repository_workdir(m_repos);
+  m_command = new GitCommand(this, m_workdir);
+  m_command->setRepository(m_repos);
 
   m_splitter->setOrientation(Qt::Horizontal);
   m_splitter->setStretchFactor(1, 1);
@@ -45,73 +50,23 @@ void GCommitView::setRepos(git_repository* repos) {
   this->m_repos = repos;
 }
 void GCommitView::updateCommitView() {
-//init the commitItem
   //setContents();
   if (m_repos == NULL) {
     qDebug() << "error , empty repository!"; 
     return;
   }
-  //get the head reference
-  git_reference* m_reference;
-  int error;
-  error = git_repository_head(&m_reference, m_repos);
-
-  const git_oid* oid = git_reference_oid(m_reference);
-    
- // git_oid_fmt(id_str, oid);
-  //now get the crevwalk, to realize the log function
-  git_revwalk* walk;
-  git_commit* wcommit;
-
-  git_revwalk_new(&walk, m_repos);
-  git_revwalk_sorting(walk, GIT_SORT_TIME);// | GIT_SORT_REVERSE);
-  git_revwalk_push(walk, oid);
-  //const git_signature* cauth;
-  //const char* cmsg;
-  
-  //build the commitList value
-  git_oid tmpOid;
-  QString html = "";
+  QString html;
   setHtmlHead(html);
-  while ((git_revwalk_next(&tmpOid, walk)) == GIT_SUCCESS) {
-    error = git_commit_lookup(&wcommit, m_repos, &tmpOid);
-    if (error == -1) {qDebug() << "error get the commit!"; return;}
-    //m_commitList << wcommit; 
-    html = html + buildEachElement(wcommit, &tmpOid); 
-    git_commit_free(wcommit);
+  QList<QStringList> Datas = m_command->gitCommitDatas();
+  QList<QStringList>::const_iterator it = Datas.constBegin();
+  for (; it != Datas.constEnd(); it++) {
+    html = html + buildEachElement(*it);
   }
   setHtmlEnd(html);
-  git_revwalk_free(walk);
-  git_reference_free(m_reference);
-
   setContents(html);
-//  git_commit_free(wcommit);
 }
-QString GCommitView::buildEachElement(git_commit* commit, git_oid* oid) {
+QString GCommitView::buildEachElement(const QStringList& dataList) {
   QString html;
-  const git_signature* cauth;
-  const char* cmsg;
-  char sha[41] = {0};
-  const char* time; 
-  //build each value
-  cmsg = git_commit_message(commit);
-  cauth = git_commit_author(commit);
-  git_oid_fmt(sha, oid);
-  git_time gTime = cauth->when;
-
-  QString qSha(sha);
-  QString message(cmsg);
-  QString author(cauth->name);
-  //QString qSha(sha, 10);//use short sha code as the sha to show
-  QString shaShort;
-  for (int i = 0; i < 10; i++) 
-    shaShort.append(sha[i]);
-  
-  time_t tmpTime = (time_t)gTime.time;
-  time = ctime(&tmpTime);
- // qDebug() << gTime.time;
-// now get the html;
-
   QFile file(":/html_files/commit_unit.html");
   if(!file.open(QIODevice::ReadOnly | QIODevice::ReadOnly)) {
     qDebug() << "Open file falure!";
@@ -122,11 +77,11 @@ QString GCommitView::buildEachElement(git_commit* commit, git_oid* oid) {
   file.close();
   //build the element
   QHash<QString, QString> stringHash;
-  stringHash.insert("message", message);
-  stringHash.insert("authorName", author);
-  stringHash.insert("date", QString(time));
-  stringHash.insert("sha", qSha);
-  stringHash.insert("sha-short", shaShort);
+  stringHash.insert("message", dataList[4]);
+  stringHash.insert("authorName", dataList[2]);
+  stringHash.insert("date", dataList[3]);
+  stringHash.insert("sha", dataList[0]);
+  stringHash.insert("sha-short", dataList[1]);
   htmlParaphrase(html, stringHash);
   return html;
 }

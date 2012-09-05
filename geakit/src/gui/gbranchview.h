@@ -25,27 +25,26 @@ class GBranchView : public QWidget
   public slots:
     void updateView();
   private slots:
-    void onChangeButtonClicked(int id);
-    void onMergeButtonClicked(int id);
-    void onRemoteButtonClicked(int id);
+    void onChangeButtonClicked(const QString& branchName);
+    void onMergeButtonClicked(const QString& branchName);
+    //void onRemoteButtonClicked(const QString& branchName);
     void onPushButtonClicked();
     void onFetchButtonClicked();
     void onNewBranchButtonClicked();
     void onNewRemoteButtonClicked();
-    void onRmBranchButtonClicked(int id);
+    void onRmBranchButtonClicked(const QString& branchName);
   private:
     QString getRemoteUrl(const QString& remoteName);
     void setupLocalBranchesArea();
     void setupRemoteBranchesArea();
-    void freeRemoteArea();
+ //   void freeRemoteArea();
   private:
     git_repository* m_repo;
     QPushButton* m_pushButton;
     QPushButton* m_fetchButton;
     QPushButton* m_newBranchButton;
     QPushButton* m_newRemoteButton;
-    QGroupBox* m_localBranchArea;
-    QList<QGroupBox*> m_remoteAreaList; 
+//    QList<QGroupBox*> m_remoteAreaList; 
     QScrollArea* m_mainArea;
     QStringList m_branchList;
     QStringList m_remoteList;

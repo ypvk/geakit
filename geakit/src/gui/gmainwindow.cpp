@@ -275,13 +275,25 @@ void GMainWindow::updateView() {
   connect(m_codeViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_codeViewWidget, SIGNAL(newCommit()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
-  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT());
-  connect(m_codeViewWidget, SIGNAL(branchChanged()), m_branchViewWidget, SLOT(updateView()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
+  connect(m_codeViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(udpateBranchView()));
   
 }
-void GMainWindow::onBranchViewChanged() {
-  updateView();
-  m_widgets->setCurrentIndex(3);
+void GMainWindow::updateBranchView() {
+  int index = m_widgets->currentIndex();
+  if (NULL != m_branchViewWidget) {
+    disconnect(m_branchViewWidget, 0, 0, 0);
+    m_widgets->removeWidget(m_branchViewWidget);
+    delete m_branchViewWidget;
+    m_branchViewWidget = NULL;
+  }
+  m_branchViewWidget = new GBranchView(this, m_currentRepo);
+  m_widgets->insertWidget(3, m_branchViewWidget);
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
+  m_widgets->setCurrentIndex(index);
 }
 void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
   //m_projectsOnline->setEnabled(true); 

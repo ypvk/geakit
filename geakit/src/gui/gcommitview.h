@@ -12,6 +12,7 @@ class QWebView;
 class QSplitter;
 class GPatchView;
 class QGroupBox;
+class GitCommand;
 
 class GCommitView : public QWidget
 {
@@ -25,7 +26,7 @@ class GCommitView : public QWidget
     void updateCommitView();
   private:
    // void init();
-    QString buildEachElement(git_commit* commit, git_oid* oid);
+    QString buildEachElement(const QStringList& dataList);
     void setContents(const QString& html);
     void setHtmlHead(QString& html);
     void setHtmlEnd(QString& html);
@@ -36,28 +37,10 @@ class GCommitView : public QWidget
     GPatchView* m_patchView;
     QGroupBox* m_patchGroupBox;
     QSplitter* m_splitter;
-  //  QFrame* m_frame;
     QWebView* m_webView;
-  //  QSCrollArea* m_viewArea;
-   // QList<QFrame*> m_itemsView;
-   // QList<CommitItem*> m_commitItems;
-   // QList<git_commit*> m_commitList;
+
+    QString m_workdir;
+    GitCommand* m_command;
+
 };
-/*
-class CommitItem : public QWidget
-{
-  public:
-    explicit CommitItem(QWidget* parent = 0, git_commit* commit = 0);
-    ~CommitItem();
-  private:
-    void init();
-  private:
-    QString m_commitMessgae;
-    QString m_commitTime;
-    QString m_commitAuthor;
-    QString m_commitCommiter;
-    QString m_commitOid;
-    //git_commit struct
-    git_commit* m_commit;
-};*/
 #endif

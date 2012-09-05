@@ -369,7 +369,7 @@ const QString GitCommand::gitHeadCommitOid()
 bool GitCommand::gitChangeBranch(const QString& branchName)
 {
   git_reference* newHead;
-  int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", branchName.toLocal8Bit().constData(), 1);
+  int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", (BRANCH_HEAD + branchName).toLocal8Bit().constData(), 1);
   if (error < GIT_SUCCESS) {
     qDebug() << "error change the branch";
     return false;
@@ -396,13 +396,100 @@ bool GitCommand::gitDeleteBranch(const QString& branchName)
 QStringList GitCommand::gitRemoteBranches(const QString& remoteName)
 {
   QStringList remoteBranches;
-  QStringList branches = gitRefs(GIT_REF_PACKED);
+  QStringList branches = gitRefs(GIT_REF_OID);
   QStringList::const_iterator it = branches.constBegin();
   for (; it != branches.constEnd(); it++) {
-    if ((*it).contains(remoteName))
-      remoteBranches << (*it);
+    if ((*it).contains(remoteName)){
+      remoteBranches << it->section('/', -2, -1);
+    }
   }
   return remoteBranches;
+}
+QList <QStringList> GitCommand::gitCommitDatas()
+{
+
+  QList <QStringList> commitDatas;
+  git_reference* m_reference;
+  int error;
+  error = git_repository_head(&m_reference, m_repo);
+
+  const git_oid* oid = git_reference_oid(m_reference);
+    
+  git_revwalk* walk;
+  git_commit* wcommit;
+
+  git_revwalk_new(&walk, m_repo);
+  git_revwalk_sorting(walk, GIT_SORT_TIME);// | GIT_SORT_REVERSE);
+  git_revwalk_push(walk, oid);
+  git_oid tmpOid;
+  while ((git_revwalk_next(&tmpOid, walk)) == GIT_SUCCESS) {
+    error = git_commit_lookup(&wcommit, m_repo, &tmpOid);
+    if (error == -1) {qDebug() << "error get the commit!"; break;}
+
+    QStringList commitData;
+    const git_signature* cauth;
+    const char* cmsg;
+    char sha[41] = {0};
+    const char* time;
+    cmsg = git_commit_message(wcommit);
+    cauth = git_commit_author(wcommit);
+    git_oid_fmt(sha, oid);
+    git_time gTime = cauth->when;
+
+    QString qSha(sha);
+    QString message(cmsg);
+    QString author(cauth->name);
+    QString shaShort;
+    for (int i = 0; i < 10; i++)
+      shaShort.append(sha[i]);
+    time_t tmpTime = (time_t)gTime.time;
+    time = ctime(&tmpTime);
+    QString qtime(time);
+    
+    commitData << qSha << shaShort << author << qtime << message;
+    commitDatas << commitData;
+    git_commit_free(wcommit);
+  }
+  git_revwalk_free(walk);
+  git_reference_free(m_reference);
+  return commitDatas;
+}
+
+bool GitCommand::gitMergeBranch(const QString& branchName)
+{
+  QString cmd = "git merge " + branchName;
+  this->execute(cmd);
+  qDebug() << this->output();
+  return true;
+}
+
+bool GitCommand::gitPush(const QString& url)
+{
+  QString cmd = QString("git push %1").arg(url);
+  this->execute(cmd);
+  qDebug() << this->output();
+  //TODO
+  return true;
+}
+QString GitCommand::gitRemoteUrl(const QString& remoteName)
+{
+  git_remote* m_remote;
+  int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
+  if (error < GIT_SUCCESS) {
+    qDebug() << "error get remote";
+    return QString();
+  }
+  QString remoteUrl = QString(git_remote_url(m_remote));
+  git_remote_free(m_remote);
+  return remoteUrl;
+}
+bool GitCommand::gitFetch(const QString& url)
+{
+  QString cmd = QString("git fetch %1").arg(url);
+  this->execute(cmd);
+  qDebug() << this->output();
+  //TODO
+  return true;
 }
 
 GitCommand::~GitCommand() {

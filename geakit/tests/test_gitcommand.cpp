@@ -20,6 +20,11 @@ int main (int argc, char* argv[])
   qDebug() << "5" << cmd->gitTags();
   qDebug() << "6" << cmd->gitRefHead();
   qDebug() << "7" << cmd->gitRemoteBranches("origin");
+  qDebug() << "8" << cmd->gitChangeBranch("abc");
+  try {
+  qDebug() << "9" << cmd->gitRemoteUrl("origin"); 
+  }catch(...)
+  {qDebug() << "error";}
   git_repository_free(repo);
   delete cmd;
   return 0;
