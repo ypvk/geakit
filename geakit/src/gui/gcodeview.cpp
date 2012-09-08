@@ -106,7 +106,7 @@ void GCodeView::gitAdd() {
       gitAddDirectory((*it)->text(0));
     }
     else {
-      QString path = m_tmpRoot == "" ? (*it)->text(0) : (m_tmpRoot + "/" + (*it)->text(0));
+      QString path = m_tmpRoot == "" ? (*it)->text(0) : QDir::toNativeSeparators(m_tmpRoot + "/" + (*it)->text(0));
       fileNames << path;
     }
     ++ it;
@@ -115,13 +115,15 @@ void GCodeView::gitAdd() {
     m_command->setRepository(m_repos);
     m_command->gitAdd(fileNames);
   }
-  QDir dir(m_workdirRoot + m_tmpRoot);
+  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);
+  QDir dir(path);
   updateView(dir);
 }
 void GCodeView::gitAddDirectory(const QString& dirName) {
   //build the dir if is file than add to index
   QString dirString = m_tmpRoot == "" ? (m_workdirRoot + dirName) : (m_workdirRoot + m_tmpRoot + "/" + dirName);
 
+  dirString = QDir::toNativeSeparators(dirString);
   qDebug() << dirString;
   QDir dir(dirString);
   if (!dir.exists()) return;
@@ -139,6 +141,7 @@ void GCodeView::gitAddDirectory(const QString& dirName) {
   while ( it != fileList.constEnd()) {
     //first get the path
     QString path = m_tmpRoot == "" ? *it : (m_tmpRoot + "/" + dirName + "/" + (*it));
+    path = QDir::toNativeSeparators(path);
     fileAddList << path;
     qDebug() << path;
     it ++;
@@ -162,7 +165,7 @@ void GCodeView::gitRm() {
       strcpy(path, filePath.toLocal8Bit().constData());
     }
     else {
-      QString filePath = m_tmpRoot + "/" + (*it++)->text(0);
+      QString filePath = QDir::toNativeSeparators(m_tmpRoot + "/" + (*it++)->text(0));
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
       
@@ -180,7 +183,8 @@ void GCodeView::gitRm() {
     delete[] path;
   } 
   git_index_free(m_index); 
-  QDir dir(m_workdirRoot + m_tmpRoot);
+  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);
+  QDir dir(path);
   updateView(dir);
 }
 void GCodeView::gitCommit() {
@@ -263,7 +267,7 @@ void GCodeView::gitCommit() {
       dirDelete.remove(*it++);
     }
  }
-  QDir dir(m_workdirRoot + m_tmpRoot);
+  QDir dir(QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot));
   updateView(dir);
   /*********emit newCommit() signal*****************/
   emit newCommit();
@@ -275,23 +279,28 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
   if (name == "dir") {
     QString dirName = item->text(0);
     if (dirName == "..") {
-      QStringList tmpList = m_tmpRoot.split("/");
-      if (tmpList.size() > 1) {
-        m_tmpRoot.replace("/" + tmpList[tmpList.size() - 1], "");//remove the end 
+      int size = m_tmpRoot.split("/").size();
+      if (size > 1) {
+        m_tmpRoot = m_tmpRoot.section('/', 0, -2);
       }
+      //QStringList tmpList = m_tmpRoot.split("/");
+      //if (tmpList.size() > 1) {
+        //m_tmpRoot.replace("/" + tmpList[tmpList.size() - 1], "");//remove the end 
+      //}
       else
         m_tmpRoot = "";
     }
     else {
       m_tmpRoot = m_tmpRoot == "" ? dirName : m_tmpRoot + "/" + dirName;
     }
-    QDir dir(m_workdirRoot + m_tmpRoot);
+    QDir dir(QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot));
     updateView(dir);
   }
   else {
     QString fileName = item->text(0);
 //    GCodeViewEditor* m_editor = new GCodeViewEditor();
     QString path = m_tmpRoot == "" ? m_workdirRoot + fileName : m_workdirRoot + m_tmpRoot + "/" + fileName;
+    path = QDir::toNativeSeparators(path);
     m_editor->loadFile(path);
     m_contentArea->setTitle(fileName);
     //m_editor->show();
@@ -302,17 +311,17 @@ void GCodeView::updateView(QDir& dir) {
   freeTreeWidget(m_fileList);
   m_selectedItems.clear();
   m_filesToDelete.clear();
-  if (m_tmpRoot == "") {
-    dir.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    m_currentDir->setText(tr("/"));
-  }
-  else {
-    dir.setFilter(QDir::NoDot | QDir::AllDirs);
-    m_currentDir->setText("/" + m_tmpRoot);
-  } 
-  QStringList dirList = dir.entryList();
+  dir.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
   QIcon dirIcon(tr(":/icons/dir.png"));
   QIcon fileIcon(tr(":/icons/txt.png"));
+  if (m_tmpRoot != "") {
+    QTreeWidgetItem* dirItem = new QTreeWidgetItem(m_fileList, QStringList() << "..");
+    dirItem->setIcon(0, dirIcon);
+    dirItem->setText(2, tr("dir"));
+    dirItem->setData(0, Qt::WhatsThisRole, QString("dir"));
+  }
+  m_currentDir->setText(QDir::toNativeSeparators("/" + m_tmpRoot));
+  QStringList dirList = dir.entryList();
   if (0 != dirList.size());
   {
     for (int i = 0; i < dirList.size(); i++)
@@ -320,9 +329,7 @@ void GCodeView::updateView(QDir& dir) {
       QTreeWidgetItem* dirItem = new QTreeWidgetItem(m_fileList, QStringList() << dirList[i]);
       dirItem->setIcon(0, dirIcon);
       dirItem->setText(2, tr("dir"));
-      if (dirList[i] != "..") {
-        dirItem->setCheckState(0, Qt::Unchecked);
-      }
+      dirItem->setCheckState(0, Qt::Unchecked);
       dirItem->setData(0, Qt::WhatsThisRole, QString("dir"));
     }
   }
@@ -346,7 +353,7 @@ void GCodeView::updateView(QDir& dir) {
         strcpy(path, strTmp.data());
       }
       else {
-        QByteArray strTmp = (m_tmpRoot + "/" + fileList[i]).toLocal8Bit();
+        QByteArray strTmp = QDir::toNativeSeparators(m_tmpRoot + "/" + fileList[i]).toLocal8Bit();
         path = new char[strTmp.size() + 1];
         path[strTmp.size()] = '\0';
         strcpy(path, strTmp.data());
@@ -408,7 +415,8 @@ void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
 }
 void GCodeView::gitReverse() {
   m_command->gitReverse();
-  QDir dir(m_workdirRoot + m_tmpRoot);
+  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot); 
+  QDir dir(path);
   updateView(dir);
 }
 void GCodeView::changeToBranch(const QString& branchName)
