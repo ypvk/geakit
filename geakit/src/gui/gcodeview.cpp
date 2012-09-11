@@ -131,7 +131,7 @@ void GCodeView::gitAddDirectory(const QString& dirName) {
   QStringList dirList = dir.entryList();
   QStringList::const_iterator it = dirList.constBegin();
   while (it != dirList.constEnd()) {
-    gitAddDirectory(dirName + "/" + (*it));
+    gitAddDirectory(QDir::toNativeSeparators(dirName + "/" + (*it)));
     it ++;
   }
   dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
@@ -140,7 +140,7 @@ void GCodeView::gitAddDirectory(const QString& dirName) {
   it = fileList.constBegin();
   while ( it != fileList.constEnd()) {
     //first get the path
-    QString path = m_tmpRoot == "" ? *it : (m_tmpRoot + "/" + dirName + "/" + (*it));
+    QString path = m_tmpRoot == "" ? (dirName + "/" + (*it)) : (m_tmpRoot + "/" + dirName + "/" + (*it));
     path = QDir::toNativeSeparators(path);
     fileAddList << path;
     qDebug() << path;
