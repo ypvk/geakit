@@ -146,7 +146,7 @@ void GMainWindow::loadSettings(){
 void GMainWindow::saveSettings(){
   m_settings.setValue("account/username", m_account->username());
   m_settings.setValue("account/password", m_account->password());
-  
+
   m_settings.setValue("size", size());
   m_settings.setValue("position", pos());
 
@@ -249,6 +249,7 @@ void GMainWindow::onOpenProject(const QString& reposWorkdir) {
   }
   statusBar()->showMessage(tr("opening the repository..."));
   m_projectsWidget->setProjectsLocalEnabled(false);
+  qDebug() << reposWorkdir;
   int error = git_repository_open(&m_currentRepo, reposWorkdir.toLocal8Bit().constData());
   if (error < GIT_SUCCESS) {
     qDebug() << "error open the repos";
@@ -268,7 +269,7 @@ void GMainWindow::onRemoveProject(const QString& reposWorkdir)
   }
 }
 void GMainWindow::updateView() {
-  
+
   //remove the origin widget
   //free the memory first
   freeWidgets();
@@ -276,10 +277,10 @@ void GMainWindow::updateView() {
   m_codeViewWidget = new GCodeView(this, m_currentRepo);
   m_commitViewWidget = new GCommitView(this, m_currentRepo);
   m_branchViewWidget = new GBranchView(this, m_currentRepo);
- 
+
 
 //  m_branchViewWidget->setPassword(m_account->password());
-  
+
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);
   m_widgets->insertWidget(3, m_branchViewWidget);
@@ -289,8 +290,8 @@ void GMainWindow::updateView() {
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
   connect(m_codeViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
-  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(udpateBranchView()));
-  
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
+
 }
 void GMainWindow::updateBranchView() {
   int index = m_widgets->currentIndex();
@@ -308,7 +309,7 @@ void GMainWindow::updateBranchView() {
   m_widgets->setCurrentIndex(index);
 }
 void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
-  //m_projectsOnline->setEnabled(true); 
+  //m_projectsOnline->setEnabled(true);
   m_projectsWidget->setProjectsOnlineEnabled(true);
   this->statusBar()->showMessage("");
   switch (resultCode)

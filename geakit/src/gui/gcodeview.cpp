@@ -21,7 +21,7 @@
 /*************here define a new status that file delete in the index, but still on the disk******/
 #define MY_GIT_STATUS_DELETED   12
 
-GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent) 
+GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 {
   m_repos = repos;
   m_fileList = new QTreeWidget(this);
@@ -39,7 +39,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   QHBoxLayout* groupBoxLayout = new QHBoxLayout;
   groupBoxLayout->addWidget(m_editor);
   m_contentArea->setLayout(groupBoxLayout);
-  
+
   m_splitter->addWidget(m_fileList);
   m_splitter->addWidget(m_contentArea);
   m_splitter->setOrientation(Qt::Vertical);
@@ -51,7 +51,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 
   pathLayout->addWidget(m_path);
   pathLayout->addWidget(m_currentDir);
-  
+
   buttonLayout->addWidget(m_branches);
   buttonLayout->addStretch(0.5);
   buttonLayout->addWidget(m_gitAddButton);
@@ -79,7 +79,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_tmpRoot = "";
   QDir dir(workdir);
   updateView(dir);
-  connect(m_fileList, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(onItemDoubleCilcked(QTreeWidgetItem*, int)));  
+  connect(m_fileList, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(onItemDoubleCilcked(QTreeWidgetItem*, int)));
   connect(m_fileList, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(onItemClicked(QTreeWidgetItem*, int)));
 
   m_command = new GitCommand(this, m_workdirRoot);
@@ -92,7 +92,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   int index = branches.indexOf(currentBranch);
   m_branches->setCurrentIndex(index);
   connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
-  
+
 }
 GCodeView::~GCodeView() {
 }
@@ -106,7 +106,7 @@ void GCodeView::gitAdd() {
       gitAddDirectory((*it)->text(0));
     }
     else {
-      QString path = m_tmpRoot == "" ? (*it)->text(0) : QDir::toNativeSeparators(m_tmpRoot + "/" + (*it)->text(0));
+      QString path = m_tmpRoot == "" ? (*it)->text(0) : (m_tmpRoot + "/" + (*it)->text(0));
       fileNames << path;
     }
     ++ it;
@@ -114,7 +114,7 @@ void GCodeView::gitAdd() {
   if (fileNames.size() > 0) {
     m_command->gitAdd(fileNames);
   }
-  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);
+  QString path = m_workdirRoot + m_tmpRoot;
   QDir dir(path);
   updateView(dir);
 }
@@ -130,7 +130,7 @@ void GCodeView::gitAddDirectory(const QString& dirName) {
   QStringList dirList = dir.entryList();
   QStringList::const_iterator it = dirList.constBegin();
   while (it != dirList.constEnd()) {
-    gitAddDirectory(QDir::toNativeSeparators(dirName + "/" + (*it)));
+    gitAddDirectory(dirName + "/" + (*it));
     it ++;
   }
   dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
@@ -140,13 +140,12 @@ void GCodeView::gitAddDirectory(const QString& dirName) {
   while ( it != fileList.constEnd()) {
     //first get the path
     QString path = m_tmpRoot == "" ? (dirName + "/" + (*it)) : (m_tmpRoot + "/" + dirName + "/" + (*it));
-    path = QDir::toNativeSeparators(path);
     fileAddList << path;
     qDebug() << path;
     it ++;
   }
   m_command->setRepository(m_repos);
-  m_command->gitAdd(fileAddList);  
+  m_command->gitAdd(fileAddList);
 }
 void GCodeView::gitRm() {
   /************delete first the thing in the entry, after commit delete the entry int the working dir***********/
@@ -167,7 +166,7 @@ void GCodeView::gitRm() {
       QString filePath = QDir::toNativeSeparators(m_tmpRoot + "/" + (*it++)->text(0));
       path = new char[filePath.size() + 1];
       strcpy(path, filePath.toLocal8Bit().constData());
-      
+
   }
     qDebug() << "selected path is " << path;
     int error;
@@ -180,8 +179,8 @@ void GCodeView::gitRm() {
     }
     error = git_index_write(m_index);
     delete[] path;
-  } 
-  git_index_free(m_index); 
+  }
+  git_index_free(m_index);
   QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);
   QDir dir(path);
   updateView(dir);
@@ -231,17 +230,17 @@ void GCodeView::gitCommit() {
   error = git_signature_now(&author_signature, userName, userEmail);
   //create commit
   const git_commit* parents[] = {m_commit};
-  error = git_commit_create( 
-      &oid, 
-      m_repos, 
+  error = git_commit_create(
+      &oid,
+      m_repos,
       "HEAD", //update the HEAD
-      author_signature, 
       author_signature,
-      NULL, 
-      commitMessage.toLocal8Bit().constData(), 
-      m_tree, 
-      1, 
-      parents 
+      author_signature,
+      NULL,
+      commitMessage.toLocal8Bit().constData(),
+      m_tree,
+      1,
+      parents
       );
   char oidStr[41] = {0};
   git_oid_fmt(oidStr, &oid);
@@ -256,7 +255,7 @@ void GCodeView::gitCommit() {
   git_signature_free(author_signature);
   git_commit_free(m_commit);
   git_index_free(m_index);
-  git_tree_free(m_tree);  
+  git_tree_free(m_tree);
   //update the view(status)
   /** now delete the file on the disk if the file is deleted in the indexed**/
   QDir dirDelete(m_workdirRoot);
@@ -284,7 +283,7 @@ void GCodeView::onItemDoubleCilcked(QTreeWidgetItem* item, int column) {
       }
       //QStringList tmpList = m_tmpRoot.split("/");
       //if (tmpList.size() > 1) {
-        //m_tmpRoot.replace("/" + tmpList[tmpList.size() - 1], "");//remove the end 
+        //m_tmpRoot.replace("/" + tmpList[tmpList.size() - 1], "");//remove the end
       //}
       else
         m_tmpRoot = "";
@@ -335,7 +334,7 @@ void GCodeView::updateView(QDir& dir) {
   dir.setFilter(QDir::Files);
   QStringList fileList = dir.entryList();
   if (0 != fileList.size()) {
-    for (int i = 0; i < fileList.size(); i ++) 
+    for (int i = 0; i < fileList.size(); i ++)
     {
       QTreeWidgetItem* fileItem = new QTreeWidgetItem(m_fileList, QStringList() << fileList[i]);
       fileItem->setIcon(0, fileIcon);
@@ -344,7 +343,7 @@ void GCodeView::updateView(QDir& dir) {
       //get the file status in git repository
       char* path;
      // qDebug() << fileList[i].toAscii().data();
-     // path = m_tmpRoot == "" ? (fileList[i]).toAscii().data() : (m_tmpRoot + "/" + fileList[i]).toAscii().data(); 
+     // path = m_tmpRoot == "" ? (fileList[i]).toAscii().data() : (m_tmpRoot + "/" + fileList[i]).toAscii().data();
       if (m_tmpRoot == "") {
         QByteArray strTmp = fileList[i].toLocal8Bit();
         path = new char[strTmp.size() + 1];
@@ -352,7 +351,7 @@ void GCodeView::updateView(QDir& dir) {
         strcpy(path, strTmp.data());
       }
       else {
-        QByteArray strTmp = QDir::toNativeSeparators(m_tmpRoot + "/" + fileList[i]).toLocal8Bit();
+        QByteArray strTmp = (m_tmpRoot + "/" + fileList[i]).toLocal8Bit();
         path = new char[strTmp.size() + 1];
         path[strTmp.size()] = '\0';
         strcpy(path, strTmp.data());
@@ -362,7 +361,7 @@ void GCodeView::updateView(QDir& dir) {
      // qDebug() << "path is " << path;
       error = git_status_file(&status_flags, m_repos, path);
      qDebug() << path << "flags" << status_flags;
-      switch(status_flags) 
+      switch(status_flags)
       {
         case GIT_STATUS_WT_NEW :
           fileItem->setText(1, tr("untacked"));
@@ -388,7 +387,7 @@ void GCodeView::updateView(QDir& dir) {
     }
   }
 }
-void GCodeView::onItemClicked(QTreeWidgetItem* item, int column) 
+void GCodeView::onItemClicked(QTreeWidgetItem* item, int column)
 {
   if (column == 0) {
    if (Qt::Checked == item->checkState(0)) {
@@ -404,7 +403,7 @@ void GCodeView::onItemClicked(QTreeWidgetItem* item, int column)
     qDebug() << "item is:" << (*it++)->text(0);
   }
   */
-} 
+}
 void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
   int size = treeWidget->topLevelItemCount();
   for (int i = 0; i < size; i++) {
@@ -414,7 +413,7 @@ void GCodeView::freeTreeWidget(QTreeWidget* treeWidget) {
 }
 void GCodeView::gitReverse() {
   m_command->gitReverse();
-  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot); 
+  QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);
   QDir dir(path);
   updateView(dir);
 }
@@ -432,7 +431,7 @@ void GCodeView::changeToBranch(const QString& branchName)
   emit branchChanged();
   return;
 }
-void GCodeView::onBranchChanged() 
+void GCodeView::onBranchChanged()
 {
   QDir dir(m_workdirRoot);
   m_tmpRoot.clear();
