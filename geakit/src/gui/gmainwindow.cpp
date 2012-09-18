@@ -289,7 +289,7 @@ void GMainWindow::updateView() {
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
   connect(m_codeViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
-  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(udpateBranchView()));
+  connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
   
 }
 void GMainWindow::updateBranchView() {
