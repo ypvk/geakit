@@ -19,26 +19,27 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* account) : QWidget(pare
   m_command = new GitCommand(this);
 
   m_addButton = new QPushButton(this);
-  m_rmButton= new QPushButton(this);
+  m_rmButton= new QPushButton(tr("delete"), this);
+  m_refreshButton = new QPushButton(tr("refresh"), this);
 
   m_addButton->setIcon(QIcon(tr(":/icons/right.png")));
-  m_rmButton->setIcon(QIcon(tr(":/icons/left.png")));
+  //m_rmButton->setIcon(QIcon(tr(":/icons/left.png")));
 
   m_addButton->setIconSize(QSize(40, 40));
-  m_rmButton->setIconSize(QSize(40, 40));
+  //m_rmButton->setIconSize(QSize(40, 40));
   m_addButton->setFixedSize(QSize(37, 37));
-  m_rmButton->setFixedSize(QSize(37, 37));
+  //m_rmButton->setFixedSize(QSize(37, 37));
 
   m_projectsOnline = new QListWidget(this);
   m_projectsLocal = new QListWidget(this);
 
   QHBoxLayout* mainLayout = new QHBoxLayout;
   QVBoxLayout* buttonLayout = new QVBoxLayout;
-  QHBoxLayout* groupLayoutOnline = new QHBoxLayout;
-  QHBoxLayout* groupLayoutLocal = new QHBoxLayout;
+  QVBoxLayout* groupLayoutOnline = new QVBoxLayout;
+  QVBoxLayout* groupLayoutLocal = new QVBoxLayout;
 
   buttonLayout->addWidget(m_addButton);
-  buttonLayout->addWidget(m_rmButton);
+  //buttonLayout->addWidget(m_rmButton);
 
   QGroupBox* projectsOnlineBox = new QGroupBox(this);
   QGroupBox* projectsLocalBox = new QGroupBox(this);
@@ -47,9 +48,11 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* account) : QWidget(pare
   projectsLocalBox->setTitle(tr("projectsLocal"));
 
   groupLayoutOnline->addWidget(m_projectsOnline);
+  groupLayoutOnline->addWidget(m_refreshButton);
   projectsOnlineBox->setLayout(groupLayoutOnline);
 
   groupLayoutLocal->addWidget(m_projectsLocal);
+  groupLayoutLocal->addWidget(m_rmButton);
   projectsLocalBox->setLayout(groupLayoutLocal);
 
   mainLayout->addWidget(projectsOnlineBox);
@@ -61,6 +64,7 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* account) : QWidget(pare
   //connects
   connect(m_addButton, SIGNAL(clicked()), this, SLOT(addProjectToLocal()));
   connect(m_rmButton, SIGNAL(clicked()), this, SLOT(removeProjectInLocal()));
+  connect(m_refreshButton, SIGNAL(clicked()), this, SLOT(onRefreshButtonClicked()));
 
   connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onItemDoubleClicked(QListWidgetItem*)));
   connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
@@ -137,9 +141,18 @@ void GProjectsView::setProjectsLocalHash(const QHash<QString, QString>& projects
 {
   m_projectsLocalHash = projectsLocalHash;
 }
+void GProjectsView::setProjectsOnlineHash(const QHash<QString, QString>& projectsOnlineHash)
+{
+  m_projectsOnlineHash = projectsOnlineHash;
+}
 QHash<QString, QString> GProjectsView:: projectsLocalHash() 
 {
   return m_projectsLocalHash;
+}
+
+QHash<QString, QString> GProjectsView::projectsOnlineHash()
+{
+  return m_projectsOnlineHash;
 }
 
 void GProjectsView::initProjectsItems(const QHash<QString, QString>& projectOnlineHash, const QString& type)
@@ -174,6 +187,10 @@ void GProjectsView::onProcessFinished()
   m_projectsLocal->setEnabled(true);
   emit workingStatusChanged(tr("end"), "");
 
+}
+void GProjectsView::onRefreshButtonClicked()
+{
+  emit refreshProjectsOnline();
 }
 GProjectsView::~GProjectsView() 
 {

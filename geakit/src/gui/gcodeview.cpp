@@ -112,7 +112,6 @@ void GCodeView::gitAdd() {
     ++ it;
   }
   if (fileNames.size() > 0) {
-    m_command->setRepository(m_repos);
     m_command->gitAdd(fileNames);
   }
   QString path = QDir::toNativeSeparators(m_workdirRoot + m_tmpRoot);

@@ -53,12 +53,6 @@ class GMainWindow :public QMainWindow
     git_config* m_config;
     GAccount* m_account;
     
-//    QListWidget* m_projectsOnline;
-//    QListWidget* m_projectsLocal;
-
-//    QPushButton* m_addButton;
-//    QPushButton* m_rmButton;
-
     QToolBar* m_toolBar;
     QAction* m_projectsAction;
     QAction* m_codeViewAction;
@@ -66,10 +60,6 @@ class GMainWindow :public QMainWindow
     QAction* m_commitViewAction;
     
     QStackedWidget* m_widgets;
-    //QWidget* m_projectsWidget;
-    //QWidget* m_codeViewWidget;
-    //QWidget* m_branchViewWidget;
-    //QWidget* m_commitViewWidget; 
     GProjectsView* m_projectsWidget;
     GCodeView* m_codeViewWidget;
     GBranchView* m_branchViewWidget;
@@ -79,13 +69,9 @@ class GMainWindow :public QMainWindow
     GRepositoryAPI* m_reposAPI;
     GitCommand* m_command;
     QHash<QString, QString> m_projectsLocalHash;//project local ,key is name, value is thepath
-    //each view (real widget)
-//    GCodeView* m_codeView;
-//    GCommitView* m_commitView;
-//    GBranchView* m_branchView;
+    QHash<QString, QString> m_projectsOnlineHash;
     
-    git_repository* m_currentRepo;
-//    QString m_latestUpdatedRepo;
+    git_repository* m_currentRepo; 
   
   private slots:
     void onSettingsActionTriggered();
@@ -104,6 +90,7 @@ class GMainWindow :public QMainWindow
     void updateBranchView();
     void onAccessComplete(GRepositoryAPI::ResultCode resultCode);
     void onWorkingStatusChanged(const QString& status, const QString& message);
+    void refreshProjectsOnline();
     //void onProcessFinished([>int exitCode, QProcess::ExitStatus exitStatus<]);
   private:
     void setupMenus();

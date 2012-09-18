@@ -113,6 +113,7 @@ void GMainWindow::loadSettings(){
   QString username = m_settings.value("account/username", "").toString();
   QString password = m_settings.value("account/password", "").toString();
   QHash<QString, QVariant> projectsHash = m_settings.value("projectsLocal", "").toHash();
+  QHash<QString, QVariant> projectsHashOnline = m_settings.value("projectsOnline", "").toHash();
   QSize size = m_settings.value("size", QSize(800, 600)).toSize();
   QPoint point = m_settings.value("position", QPoint(0, 0)).toPoint();
 
@@ -122,6 +123,11 @@ void GMainWindow::loadSettings(){
   QHash<QString, QVariant>::const_iterator it = projectsHash.constBegin();
   while (it != projectsHash.constEnd()) {
     m_projectsLocalHash.insert(it.key(), it.value().toString());
+    ++it;
+  }
+  it = projectsHashOnline.constBegin();
+  while (it != projectsHashOnline.constEnd()) {
+    m_projectsOnlineHash.insert(it.key(), it.value().toString());
     ++it;
   }
   int error;
@@ -152,6 +158,16 @@ void GMainWindow::saveSettings(){
     ++it;
   }
   m_settings.setValue("projectsLocal", projectsHash);
+
+  QHash<QString, QVariant> projectsHashOnline;
+  m_projectsOnlineHash = m_projectsWidget->projectsOnlineHash();
+  it = m_projectsOnlineHash.constBegin();
+  while (it != m_projectsOnlineHash.constEnd()) {
+    projectsHashOnline.insert(it.key(), QVariant(it.value()));
+    ++it;
+  }
+  m_settings.setValue("projectsOnline", projectsHashOnline);
+
   int error;
   error = git_config_set_string(m_config, "user.name", m_account->fullname().toLocal8Bit().constData());
   error = git_config_set_string(m_config, "user.email", m_account->email().toLocal8Bit().constData());
@@ -179,24 +195,20 @@ void GMainWindow::buildGui() {
   connect(m_projectsWidget, SIGNAL(openProject(QString)), this, SLOT(onOpenProject(QString)));
   connect(m_projectsWidget, SIGNAL(removeProject(QString)), this, SLOT(onRemoveProject(QString)));
   connect(m_projectsWidget, SIGNAL(workingStatusChanged(QString, QString)), this, SLOT(onWorkingStatusChanged(QString, QString)));
+  connect(m_projectsWidget, SIGNAL(refreshProjectsOnline()), this, SLOT(refreshProjectsOnline()));
 }
 void GMainWindow::initProjectItems() {
-  if ("" == m_account->username()) {
-    QMessageBox::information(this, tr("warning"), tr("please set the name and the passwordfirst"));
-    qDebug() << "error, no usrname and password is set";
-    return;
-  }
+
   m_command = new GitCommand(this);
   m_manager = new QNetworkAccessManager(this);
   m_reposAPI = new GRepositoryAPI(m_manager);
-  m_reposAPI->setUsername(m_account->username());
-  m_reposAPI->startConnect();
   connect(m_reposAPI, SIGNAL(complete(GRepositoryAPI::ResultCode)), this, SLOT(onAccessComplete(GRepositoryAPI::ResultCode)));
-  m_projectsWidget->setProjectsOnlineEnabled(false);
-  this->statusBar()->showMessage(tr("connectting ..."));
 
   m_projectsWidget->setProjectsLocalHash(m_projectsLocalHash);
   m_projectsWidget->initProjectsItems(m_projectsLocalHash, tr("local"));
+
+  m_projectsWidget->setProjectsOnlineHash(m_projectsOnlineHash);
+  m_projectsWidget->initProjectsItems(m_projectsOnlineHash, tr("online"));
 }
 
 
@@ -305,6 +317,7 @@ void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {
       {
         qDebug() << m_reposAPI->getReposNum();
         QHash<QString, QString> reposHash = m_reposAPI->getRepos();
+        m_projectsWidget->setProjectsOnlineHash(reposHash);
         m_projectsWidget->initProjectsItems(reposHash, QString("online"));
         break;
       }
@@ -352,4 +365,17 @@ void GMainWindow::freeWidgets() {
     delete m_branchViewWidget;
     m_branchViewWidget = NULL;
   }
+}
+
+void GMainWindow::refreshProjectsOnline()
+{
+  if ("" == m_account->username()) {
+    QMessageBox::information(this, tr("warning"), tr("please set the name and the passwordfirst"));
+    qDebug() << "error, no usrname and password is set";
+    return;
+  }
+  m_reposAPI->setUsername(m_account->username());
+  m_reposAPI->startConnect();
+  m_projectsWidget->setProjectsOnlineEnabled(false);
+  this->statusBar()->showMessage(tr("connectting ..."));
 }
