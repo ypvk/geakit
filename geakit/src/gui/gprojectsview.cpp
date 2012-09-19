@@ -86,13 +86,19 @@ void GProjectsView::addProjectToLocal() {
     int pos = text.indexOf(rx);
     if (pos < 0) return;
     QString projectName = rx.cap(1);
-    QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("/home/yuping/yp/git"));
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Project Dir Local"), tr("."));
     if (dirName == "") {
       qDebug() << "empty file name do nothing";
       return;
     }
     QString path = QDir::toNativeSeparators(dirName + "/" + projectName);
-    //save the value
+    //if the dir exits return false
+    QDir dir(path);
+    if (path.exists()) {
+      QMessageBox::warning(this, tr("dir exits"), tr("dir exists, please change it"));
+      return;
+    }
+    save the value
     if (m_projectsLocalHash.value(projectName) != "") {
       QMessageBox::warning(this, tr("warning"), tr("projects has been here, try another place"));
       return;
@@ -161,7 +167,7 @@ void GProjectsView::initProjectsItems(const QHash<QString, QString>& projectOnli
   QHash<QString, QString>::const_iterator it = projectOnlineHash.constBegin();
   while (it != projectOnlineHash.constEnd())
   {
-    qDebug() << it.key() << ":" << it.value();
+    //qDebug() << it.key() << ":" << it.value();
     QListWidgetItem* projectItem = new QListWidgetItem(projectsList);
     QString text = QString("%1:\t%2").arg(it.key()).arg(it.value());
     projectItem->setText(text);
@@ -170,7 +176,7 @@ void GProjectsView::initProjectsItems(const QHash<QString, QString>& projectOnli
 }
 void GProjectsView::onItemDoubleClicked(QListWidgetItem* project)
 {
-  QStringList tmpList = (project->text()).split(":");
+  QStringList tmpList = (project->text()).split("\t");
   QString reposPath = tmpList[1].trimmed();
   emit openProject(reposPath);
 }
