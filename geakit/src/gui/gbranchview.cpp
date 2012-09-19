@@ -118,12 +118,14 @@ void GBranchView::onMergeButtonClicked(const QString& branchName) {
 //}
 void GBranchView::onPushButtonClicked() {
   //get the selected remote
-  if (m_password == "") {
-    QMessageBox::warning(this, tr("warning"), tr("please set the password in the setting dialog"));
+  if (m_password == "" || m_username == "") {
+    QMessageBox::warning(this, tr("warning"), tr("please set the password or username in the setting dialog"));
     return;
   }
   QString remoteName = m_remoteNames->currentText();
-  QString remoteUrl = getRemoteUrl(remoteName);
+  QString remoteUrl = m_command->gitRemoteUrl(remoteName);
+  m_command->setPassword(m_password);
+  m_command->setUsername(m_username);
   bool result = m_command->gitPush(remoteUrl);
   if (result) qDebug() << "success push";
   else qDebug() << "error push";
@@ -138,8 +140,8 @@ void GBranchView::onFetchButtonClicked() {
   }
   QString remoteName = m_remoteNames->currentText();
   QString remoteUrl = getRemoteUrl(remoteName);
-  //QString cmd = QString("git fetch %1").arg(remoteUrl);
-  //m_command->execute(cmd);
+  m_command->setPassword(m_password);
+  m_command->setUsername(m_username);
   bool result = m_command->gitFetch(remoteUrl);
   if (result) qDebug() << "success fetch";
   else qDebug() << "error fetch";
@@ -158,6 +160,9 @@ QString GBranchView::getRemoteUrl(const QString& remoteName) {
 }
 void GBranchView::setPassword(const QString& password) {
   m_password = password;
+}
+void GBranchView::setUsername(const QString& username) {
+  m_username = username;
 }
 void GBranchView::onNewBranchButtonClicked() {
   GBranchNameDialog dlg;

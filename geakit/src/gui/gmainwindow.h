@@ -101,6 +101,7 @@ class GMainWindow :public QMainWindow
     void initProjectItems();
     void setupToolBar();
     void freeWidgets();
+    void setEnvironment();
     //void resetConfigUrl();
 };
 

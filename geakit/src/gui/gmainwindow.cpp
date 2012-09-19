@@ -41,7 +41,8 @@ GMainWindow::GMainWindow(QWidget* parent):QMainWindow(parent), ui(new Ui::GMainW
   buildGui();
   setupToolBar();
   initProjectItems();
-  this->setWindowTitle(tr("Geakit Git Client"));
+  setEnvironment();
+  setWindowTitle(tr("Geakit Git Client"));
 }
 
 GMainWindow::~GMainWindow(){
@@ -130,16 +131,33 @@ void GMainWindow::loadSettings(){
     m_projectsOnlineHash.insert(it.key(), it.value().toString());
     ++it;
   }
+  //get the config file
+  QString fullname;
+  QString email;
   int error;
   const char* cfullname;
   const char* cemail;
-  error = git_config_open_global(&m_config);
-  //TODO do something if error occured
-  error = git_config_get_string(m_config, "user.name", &cfullname);
-  error = git_config_get_string(m_config, "user.email", &cemail);
-  //TODO do something if error occured
-  QString fullname = QString(cfullname);
-  QString email = QString(cemail);
+  char* path = new char[GIT_PATH_MAX];
+  error = git_config_find_global(path);
+  if (error < GIT_SUCCESS) {
+    //build git config file
+    QString config_file_path = QDir::toNativeSeparators((QDir::home()).path() + "/" + ".gitconfig");
+    error = git_config_new(&m_config);
+    error = git_config_set_string(m_config, "user.name", "");
+    error = git_config_set_string(m_config, "user.email", "");
+    error = git_config_add_file_ondisk(m_config, config_file_path.toLocal8Bit().constData(), 1000);
+    if (error < GIT_SUCCESS) {
+      qDebug() << "can't set up file";
+    }
+  }
+  else {
+    error = git_config_open_global(&m_config);
+    error = git_config_get_string(m_config, "user.name", &cfullname);
+    error = git_config_get_string(m_config, "user.email", &cemail);
+    fullname = QString(cfullname);
+    email = QString(cemail);
+  }
+  delete[] path;
   m_account = new GAccount(username, password, fullname, email);
 }
 
@@ -278,8 +296,8 @@ void GMainWindow::updateView() {
   m_commitViewWidget = new GCommitView(this, m_currentRepo);
   m_branchViewWidget = new GBranchView(this, m_currentRepo);
 
-
-//  m_branchViewWidget->setPassword(m_account->password());
+  m_branchViewWidget->setPassword(m_account->password());
+  m_branchViewWidget->setUsername(m_account->username());
 
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);
@@ -378,4 +396,13 @@ void GMainWindow::refreshProjectsOnline()
   m_reposAPI->startConnect();
   m_projectsWidget->setProjectsOnlineEnabled(false);
   this->statusBar()->showMessage(tr("connectting ..."));
+}
+void GMainWindow::setEnvironment()
+{
+#ifdef Q_OS_WIN
+ QByteArray HOME_PATH = qgetenv("HOME");
+ if (HOME_PATH.isEmpty()) {
+  qsetenv("HOME", QString("%USERPROFILE%").toLocal8Bit());  
+ }
+#endif
 }

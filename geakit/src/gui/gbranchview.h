@@ -19,6 +19,7 @@ class GBranchView : public QWidget
   public:
     explicit GBranchView(QWidget* parent = 0, git_repository* repo = 0);
     void setPassword(const QString& password);
+    void setUsername(const QString& username);
     ~GBranchView();
   signals:
     void branchChanged();
@@ -50,6 +51,7 @@ class GBranchView : public QWidget
     QStringList m_remoteList;
     QHash<QString, QStringList> m_remoteBranchesHash;
     QString m_password;
+    QString m_username;
     QComboBox* m_remoteNames;
     QVBoxLayout* m_mainLayout;
 

@@ -15,7 +15,8 @@ class GitCommand : public QThread
     ~GitCommand();
     void execute(const QString& cmd);
     void setWorkDir(const QString& workdir);
-//    void setPassword(const QString& password);
+    void setPassword(const QString& password);
+    void setUsername(const QString& username);
     const QString& output() const;
     bool removeGitDir(const QString& dirName);
     void run();
@@ -45,6 +46,9 @@ class GitCommand : public QThread
     const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
+  private:
+    bool setupEnvironment();
+    void removeEnviroment();
   signals:
     void finishedProcess();//add signals if process is finished
   private slots:
@@ -60,10 +64,9 @@ class GitCommand : public QThread
     QString m_workDir;
     QProcess* m_process;
     git_repository* m_repo;
-//    bool m_ispasswordNeeded;
-//    QString m_password;
-    //to reset the config url
-    bool m_shouldResetTheUrl;
     QString m_projectName;
+    QString m_pullFetchFile;
+    QString m_username;
+    QString m_password;
 };
 #endif

@@ -14,12 +14,22 @@ GitCommand::GitCommand(QObject* parent, const QString& workDir) : QThread(parent
   m_process->setEnvironment(env);
 
   m_waitTime = 10000;//default waitfor 10s;
-  m_shouldResetTheUrl = false;
+  //m_shouldResetTheUrl = false;
   connect(m_process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(onProcessStateChanged(QProcess::ProcessState)));
   connect(m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(redFromStdOut()));
   connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(redFromStdErr()));
   connect(m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(processError(QProcess::ProcessError)));
   connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
+
+  //define the pull_Fetch_file
+  QString filePath;
+#ifdef Q_OS_WIN
+  filePath = "_netrc";
+#else
+  filePath = ".netrc";
+#endif
+  QString homePath = QDir::home().path();
+  m_pullFetchFile = QDir::toNativeSeparators(homePath + "/" + filePath);
 }
 void GitCommand::redFromStdOut() {
   m_output.clear();
@@ -44,12 +54,8 @@ void GitCommand::processFinished(int exitCode, QProcess::ExitStatus exitStatus) 
   else 
   {
     qDebug() << "in the process, exitCode: " << exitCode;
-    if (m_shouldResetTheUrl) {
-      QString dir = QDir::toNativeSeparators(m_workDir + "/" + m_projectName);
-      gitResetConfigUrl(dir);
-      m_shouldResetTheUrl = false;
-    }
   }
+    this->removeEnviroment();
     emit finishedProcess();
 }
 void GitCommand::onProcessStateChanged(QProcess::ProcessState processState) {
@@ -83,12 +89,13 @@ void GitCommand::execute(const QString& cmd) {
 const QString& GitCommand::output() const {
   return m_output;
 }
-/*
 void GitCommand::setPassword(const QString& password) {
   m_password = password;
-  m_ispasswordNeeded = true; 
 }
-*/
+
+void GitCommand::setUsername(const QString& username) {
+  m_username = username;
+}
 void GitCommand::setWorkDir(const QString& workDir) {
   m_workDir = workDir;
   m_process->setWorkingDirectory(m_workDir);
@@ -244,7 +251,7 @@ void GitCommand::gitClone(const QString& projectName, const QString& url)
   QString cmd = QString("git clone %1").arg(url);
   qDebug() << "cloning ... ";
   //do it asycronize
-  m_shouldResetTheUrl = true;
+  //m_shouldResetTheUrl = true;
   m_projectName = projectName;
 
   this->setWaitTime(0);
@@ -465,6 +472,9 @@ bool GitCommand::gitMergeBranch(const QString& branchName)
 
 bool GitCommand::gitPush(const QString& url)
 {
+  if (!this->setupEnvironment()) {
+    return false;
+  }
   QString cmd = QString("git push %1").arg(url);
   this->execute(cmd);
   qDebug() << this->output();
@@ -485,13 +495,39 @@ QString GitCommand::gitRemoteUrl(const QString& remoteName)
 }
 bool GitCommand::gitFetch(const QString& url)
 {
+  if (!this->setupEnvironment()) {
+    return false;
+  }
   QString cmd = QString("git fetch %1").arg(url);
   this->execute(cmd);
   qDebug() << this->output();
   //TODO
   return true;
 }
+bool GitCommand::setupEnvironment()
+{  
+  QFile file(m_pullFetchFile);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+  {
+    qDebug() << "error open file";
+    return false;
+  } 
+  QTextStream out(&file);
+  out << "machine " << "github.com" << "\n";
+  out << "login " << m_username << "\n";
+  out << "password " << m_password << "\n";
+  file.close();
+  return true;
+}
 
+void GitCommand::removeEnviroment()
+{
+  QFile file(m_pullFetchFile);
+  if (file.exists())
+  {
+    file.remove();
+  }
+}
 GitCommand::~GitCommand() {
 }
 

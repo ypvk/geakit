@@ -23,7 +23,7 @@ class GAccountAPI: public QObject
     void startConnect();
 
   signals:
-    void incompleteInstance(); //如果networkaccessmanager等私有变量没有初始化， 再调用相关API的时候会触发此信号
+    void incompleteInstance();
   private slots:
     void parseFinished(QNetworkReply* reply);
     void onTimeout();

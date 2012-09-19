@@ -108,7 +108,7 @@ void GProjectsView::addProjectToLocal() {
     //now use git clone to clone the repository to local
     m_command->setWorkDir(dirName);
     //here use https://name@github.com/name/repos_name.git as the url;
-    QString reposUrl = QString("https://%1:%3@github.com/%1/%2.git").arg(m_account->username()).arg(projectName).arg(m_account->password());
+    QString reposUrl = QString("https://%1@github.com/%1/%2.git").arg(m_account->username()).arg(projectName);
     m_command->gitClone(projectName, reposUrl);
     m_projectsLocal->setEnabled(false);
     QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
