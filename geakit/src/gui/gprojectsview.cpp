@@ -93,12 +93,12 @@ void GProjectsView::addProjectToLocal() {
     }
     QString path = QDir::toNativeSeparators(dirName + "/" + projectName);
     //if the dir exits return false
-    QDir dir(path);
-    if (path.exists()) {
+    QDir test_dir(path);
+    if (test_dir.exists()) {
       QMessageBox::warning(this, tr("dir exits"), tr("dir exists, please change it"));
       return;
     }
-    save the value
+    //save the value
     if (m_projectsLocalHash.value(projectName) != "") {
       QMessageBox::warning(this, tr("warning"), tr("projects has been here, try another place"));
       return;
@@ -164,6 +164,7 @@ QHash<QString, QString> GProjectsView::projectsOnlineHash()
 void GProjectsView::initProjectsItems(const QHash<QString, QString>& projectOnlineHash, const QString& type)
 {
   QListWidget* projectsList = type == "online" ? m_projectsOnline : m_projectsLocal;
+  projectsList->clear();
   QHash<QString, QString>::const_iterator it = projectOnlineHash.constBegin();
   while (it != projectOnlineHash.constEnd())
   {
