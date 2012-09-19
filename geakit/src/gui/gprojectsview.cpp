@@ -75,7 +75,7 @@ void GProjectsView::addProjectToLocal() {
     return;
   }
   emit workingStatusChanged(tr("start"), tr("clone the repository"));
-  //start 
+  //start
   QList<QListWidgetItem* > selectedProjects = m_projectsOnline->selectedItems();
   QList<QListWidgetItem*>::iterator it = selectedProjects.begin();
   while (it != selectedProjects.end()) {
@@ -135,12 +135,12 @@ void GProjectsView::removeProjectInLocal() {
     QStringList tmpList = projectString.split(":");
     qDebug() << tmpList[0];
     m_projectsLocalHash.remove(tmpList[0]);
-    bool result = m_command->removeGitDir(tmpList[1].trimmed()); 
+    bool result = m_command->removeGitDir(tmpList[1].trimmed());
     qDebug() << "remove result:" << result;
     /*******also can remove the projects on disk***************/
     emit removeProject(tmpList[1].trimmed());
     delete item;
-    it++; 
+    it++;
   }
 }
 void GProjectsView::setProjectsLocalHash(const QHash<QString, QString>& projectsLocalHash)
@@ -151,7 +151,7 @@ void GProjectsView::setProjectsOnlineHash(const QHash<QString, QString>& project
 {
   m_projectsOnlineHash = projectsOnlineHash;
 }
-QHash<QString, QString> GProjectsView:: projectsLocalHash() 
+QHash<QString, QString> GProjectsView:: projectsLocalHash()
 {
   return m_projectsLocalHash;
 }
@@ -199,6 +199,6 @@ void GProjectsView::onRefreshButtonClicked()
 {
   emit refreshProjectsOnline();
 }
-GProjectsView::~GProjectsView() 
+GProjectsView::~GProjectsView()
 {
 }
