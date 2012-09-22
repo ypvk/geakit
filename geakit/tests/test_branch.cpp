@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
   int error;
   git_repository* m_repos;
   error = git_repository_open(&m_repos, path);
-  if (error << GIT_SUCCESS) {
+  if (error << GIT_OK) {
     cerr << "error open the repos" << endl;
     return 0;
   }
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
   const char* name = "branch1";
   const git_oid* head_oid = git_reference_oid(head);
   error = git_commit_lookup(&commit, m_repos, head_oid);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     cout << "error commit" << endl;
   }
   cout << git_commit_message(commit);
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   const char* branchName = "refs/heads/branch1";
   //git_buf_joinpath(&wholeName, GIT_REFS_HEADS_DIR, branch_name);
   error = git_reference_create_oid(&newBranch, m_repos, branchName, &oid_out, 1);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     cerr << "error" << endl;
     cerr << error << endl;
   }

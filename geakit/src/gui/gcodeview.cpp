@@ -175,7 +175,7 @@ void GCodeView::gitRm() {
     qDebug() << "position is: " << position;
     if (position >= 0) {
       error = git_index_remove(m_index, position);
-      if (error < GIT_SUCCESS)qDebug() << "add failue";
+      if (error < GIT_OK)qDebug() << "add failue";
     }
     error = git_index_write(m_index);
     delete[] path;
@@ -222,9 +222,9 @@ void GCodeView::gitCommit() {
   git_config* m_config;
   const char* userName;
   const char* userEmail;
-  error = git_config_open_global(&m_config);
-  error = git_config_get_string(m_config, "user.name", &userName);
-  error = git_config_get_string(m_config, "user.email", &userEmail);
+  error = git_config_open_default(&m_config);
+  error = git_config_get_string(&userName, m_config, "user.name");
+  error = git_config_get_string(&userEmail, m_config, "user.email");
   git_signature* author_signature;
 
   error = git_signature_now(&author_signature, userName, userEmail);
