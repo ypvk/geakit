@@ -147,7 +147,7 @@ void GitCommand::setRepository(git_repository* repo) {
 void GitCommand::createBranch(const QString& branchName) {
   git_reference* head;
   int error = git_repository_head(&head, m_repo);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get the head";
     return;
   }
@@ -158,7 +158,7 @@ void GitCommand::createBranch(const QString& branchName) {
   git_reference* newBranch;
   QString wholeName = QString("refs/heads/%1").arg(branchName);
   error = git_reference_create_oid(&newBranch, m_repo, wholeName.toLocal8Bit().constData(), head_oid, 1);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error create new branch";
     return;
   }
@@ -169,13 +169,13 @@ void GitCommand::createBranch(const QString& branchName) {
 void GitCommand::gitAdd(const QStringList& fileList) {
   git_index* index;
   int error = git_repository_index(&index, m_repo);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get the index";
   }
   QStringList::const_iterator it = fileList.constBegin();
   while ( it != fileList.constEnd()) {
     error = git_index_add(index, (*it).toLocal8Bit().constData(), (GIT_IDXENTRY_ADDED & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT);
-    if (error < GIT_SUCCESS) qDebug() << "add failue";
+    if (error < GIT_OK) qDebug() << "add failue";
     it++;
   }
     error = git_index_write(index);
@@ -192,21 +192,21 @@ void GitCommand::gitReverse() {
   error = git_repository_index(&index, m_repo);
   oid = git_reference_oid(head);
   error = git_commit_lookup(&headCommit, m_repo, oid);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get the Commit";
   }
   error = git_commit_tree(&headTree, headCommit);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get the tree";
   }
-  error = git_index_read_tree(index, headTree);
+  error = git_index_read_tree(index, headTree, NULL);
   error = git_index_write(index);
   git_index_free(index); 
   git_tree_free(headTree);
   git_commit_free(headCommit);
   git_reference_free(head);
     //int error = git_repository_index(&index, m_repo);
-  //TODO if error < GIT_SUCCESS
+  //TODO if error < GIT_OK
   //git_index_clear(index);
   git_index_free(index);
 }
@@ -214,7 +214,7 @@ void GitCommand::createRemote(const QString& remoteName, const QString& remoteUr
   /***************without git_remote_save(git_remote* remote) using shell instead*******
   git_remote* remoteNew;
   int error = git_remote_new(&remoteNew, m_repo, remoteUrl.toLocal8Bit().constData(), remoteName.toLocal8Bit().constData());
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error create new remote";
     return;
   }
@@ -256,18 +256,18 @@ void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
   git_repository* tmpRepos;
   git_config* tmpConfig;
   int error = git_repository_open(&tmpRepos, reposWorkdir.toLocal8Bit().constData());
-  if ( error < GIT_SUCCESS) {
+  if ( error < GIT_OK) {
     qDebug() << "open repository " << reposWorkdir;
     return;
   }
   error = git_repository_config(&tmpConfig, tmpRepos);
-  if ( error < GIT_SUCCESS) {
+  if ( error < GIT_OK) {
     qDebug() << "open config failed";
   }
   const char* name = "remote.origin.url";
   const char* value;
-  error = git_config_get_string(tmpConfig, name, &value);
-  if (error == GIT_SUCCESS) {
+  error = git_config_get_string(&value, tmpConfig, name);
+  if (error == GIT_OK) {
     qDebug() << name << ": " << value << endl;
   }
   QString url(value);
@@ -284,12 +284,12 @@ void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
   git_config_free(tmpConfig);
   git_repository_free(tmpRepos);
 }
-QStringList GitCommand::gitRefs(git_rtype ref_type)
+QStringList GitCommand::gitRefs(git_ref_t ref_type)
 {
   git_strarray strarray;
   int error;
-  error = git_reference_listall(&strarray, m_repo, ref_type);
-  if (error < GIT_SUCCESS) {
+  error = git_reference_list(&strarray, m_repo, ref_type);
+  if (error < GIT_OK) {
     qDebug() << "error List";
     return QStringList();
   }
@@ -303,7 +303,7 @@ QStringList GitCommand::gitRefs(git_rtype ref_type)
 }
 QStringList GitCommand::gitBranches()
 {
-  git_rtype ref_type = GIT_REF_OID;
+  git_ref_t ref_type = GIT_REF_OID;
   QStringList all_refs = gitRefs(ref_type);
   QStringList::const_iterator it = all_refs.constBegin();
   QStringList branches;
@@ -317,7 +317,7 @@ QStringList GitCommand::gitBranches()
 } 
 QStringList GitCommand::gitTags()
 {
-  git_rtype ref_type = GIT_REF_OID;
+  git_ref_t ref_type = GIT_REF_OID;
   QStringList all_refs = gitRefs(ref_type);
   QStringList::const_iterator it = all_refs.constBegin();
   QStringList tags;
@@ -333,7 +333,7 @@ QString GitCommand::gitRefHead()
 {
   git_reference* head;
   int error = git_repository_head(&head, m_repo);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get the head";
     return QString();
   }
@@ -356,7 +356,7 @@ const QString GitCommand::gitHeadCommitOid()
 {
   git_reference* head;
   int error = git_repository_head(&head, m_repo);
-  if (error < GIT_SUCCESS)
+  if (error < GIT_OK)
   { 
     qDebug() << "error get head oid";
     return QString();
@@ -371,7 +371,7 @@ bool GitCommand::gitChangeBranch(const QString& branchName)
 {
   git_reference* newHead;
   int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", (BRANCH_HEAD + branchName).toLocal8Bit().constData(), 1);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error change the branch";
     return false;
   }  
@@ -382,12 +382,12 @@ bool GitCommand::gitDeleteBranch(const QString& branchName)
 {
   git_reference* branch;
   int error = git_reference_lookup(&branch, m_repo, branchName.toLocal8Bit().constData());
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "Can't get the branch"; 
     return false;
   }
   error = git_reference_delete(branch);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "can't delete";
     return false;
   }
@@ -424,7 +424,7 @@ QList <QStringList> GitCommand::gitCommitDatas()
   git_revwalk_sorting(walk, GIT_SORT_TIME);// | GIT_SORT_REVERSE);
   git_revwalk_push(walk, oid);
   git_oid tmpOid;
-  while ((git_revwalk_next(&tmpOid, walk)) == GIT_SUCCESS) {
+  while ((git_revwalk_next(&tmpOid, walk)) == GIT_OK) {
     error = git_commit_lookup(&wcommit, m_repo, &tmpOid);
     if (error == -1) {qDebug() << "error get the commit!"; break;}
 
@@ -481,7 +481,7 @@ QString GitCommand::gitRemoteUrl(const QString& remoteName)
 {
   git_remote* m_remote;
   int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error get remote";
     return QString();
   }

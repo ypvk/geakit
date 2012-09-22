@@ -80,7 +80,7 @@ GBranchView::~GBranchView() {
 void GBranchView::onChangeButtonClicked(const QString& branchName) {
   //git_reference* newHead;
   //int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", m_branchList[id].toLocal8Bit().constData(), 1);
-  //if (error < GIT_SUCCESS) {
+  //if (error < GIT_OK) {
     //qDebug() << "error change the branch";
   //}  
   //git_reference_free(newHead);

@@ -31,7 +31,7 @@ class GitCommand : public QThread
     void gitAdd(const QStringList& fileList);
     void gitReverse();
     QString gitRefHead();
-    QStringList gitRefs(git_rtype ref_type = GIT_REF_LISTALL);
+    QStringList gitRefs(git_ref_t ref_type = GIT_REF_LISTALL);
     QStringList gitBranches();
     QStringList gitTags();
     QStringList gitRemoteNames();

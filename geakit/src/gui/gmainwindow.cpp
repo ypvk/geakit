@@ -138,22 +138,22 @@ void GMainWindow::loadSettings(){
   const char* cfullname;
   const char* cemail;
   char* path = new char[GIT_PATH_MAX];
-  error = git_config_find_global(path);
-  if (error < GIT_SUCCESS) {
+  error = git_config_find_global(path, GIT_PATH_MAX);
+  if (error < GIT_OK) {
     //build git config file
     QString config_file_path = QDir::toNativeSeparators((QDir::home()).path() + "/" + ".gitconfig");
     error = git_config_new(&m_config);
     error = git_config_set_string(m_config, "user.name", "");
     error = git_config_set_string(m_config, "user.email", "");
     error = git_config_add_file_ondisk(m_config, config_file_path.toLocal8Bit().constData(), 1000);
-    if (error < GIT_SUCCESS) {
+    if (error < GIT_OK) {
       qDebug() << "can't set up file";
     }
   }
   else {
-    error = git_config_open_global(&m_config);
-    error = git_config_get_string(m_config, "user.name", &cfullname);
-    error = git_config_get_string(m_config, "user.email", &cemail);
+    error = git_config_open_default(&m_config);
+    error = git_config_get_string(&cfullname, m_config, "user.name");
+    error = git_config_get_string(&cemail, m_config, "user.email");
     fullname = QString(cfullname);
     email = QString(cemail);
   }
@@ -269,7 +269,7 @@ void GMainWindow::onOpenProject(const QString& reposWorkdir) {
   m_projectsWidget->setProjectsLocalEnabled(false);
   qDebug() << reposWorkdir;
   int error = git_repository_open(&m_currentRepo, reposWorkdir.toLocal8Bit().constData());
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error open the repos";
     m_currentRepo = NULL;
     return;
@@ -402,7 +402,7 @@ void GMainWindow::setEnvironment()
 #ifdef Q_OS_WIN
  QByteArray HOME_PATH = qgetenv("HOME");
  if (HOME_PATH.isEmpty()) {
-  qsetenv("HOME", QString("%USERPROFILE%").toLocal8Bit());  
+  qputenv("HOME", QString("%USERPROFILE%").toLocal8Bit());  
  }
 #endif
 }

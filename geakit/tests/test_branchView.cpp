@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
   const char* path = "/Users/yuping/yp/git/test_api";
   git_repository* repos;
   int error = git_repository_open(&repos, path);
-  if (error < GIT_SUCCESS) {
+  if (error < GIT_OK) {
     qDebug() << "error open the repos";
     return 0;
   }
