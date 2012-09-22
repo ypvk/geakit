@@ -34,15 +34,19 @@ class GBranchView : public QWidget
     void onNewBranchButtonClicked();
     void onNewRemoteButtonClicked();
     void onRmBranchButtonClicked(const QString& branchName);
+    void onSyncButtonClicked();
+    void onProcessFinished();
   private:
     QString getRemoteUrl(const QString& remoteName);
     void setupLocalBranchesArea();
     void setupRemoteBranchesArea();
+    void gitSynchronize(const QString& branch, const QString& remote);
  //   void freeRemoteArea();
   private:
     git_repository* m_repo;
     QPushButton* m_pushButton;
     QPushButton* m_fetchButton;
+    QPushButton* m_syncButton;
     QPushButton* m_newBranchButton;
     QPushButton* m_newRemoteButton;
 //    QList<QGroupBox*> m_remoteAreaList; 

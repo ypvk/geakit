@@ -23,6 +23,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_mainArea = new QScrollArea(this);
   m_pushButton = new QPushButton(tr("Push"), this);
   m_fetchButton = new QPushButton(tr("Fetch"), this);
+  m_syncButton = new QPushButton(tr("Sync"), this);
   m_remoteNames = new QComboBox(this);
   m_newBranchButton = new QPushButton(tr("NewBranch"), this);
   m_newRemoteButton = new QPushButton(tr("NewRemote"), this);
@@ -46,15 +47,19 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_actionButtonLayout->addWidget(m_remoteNames);
   m_actionButtonLayout->addWidget(m_pushButton);
   m_actionButtonLayout->addWidget(m_fetchButton);
+  m_actionButtonLayout->addWidget(m_syncButton);
 
   m_mainLayout->addLayout(m_actionButtonLayout);
   mainWidget->setLayout(m_mainLayout);
+
+  connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
  
   //connect the button signal
   connect(m_pushButton, SIGNAL(clicked()), this, SLOT(onPushButtonClicked()));
   connect(m_fetchButton, SIGNAL(clicked()), this, SLOT(onFetchButtonClicked()));
   connect(m_newBranchButton, SIGNAL(clicked()), this, SLOT(onNewBranchButtonClicked()));
   connect(m_newRemoteButton, SIGNAL(clicked()), this, SLOT(onNewRemoteButtonClicked()));
+  connect(m_syncButton, SIGNAL(clicked()), this, SLOT(onSyncButtonClicked()));
 
   updateView();
 
@@ -96,26 +101,8 @@ void GBranchView::onMergeButtonClicked(const QString& branchName) {
     qDebug() << "error merge " << branchName;
     return;
   }
-  //QString branchName = m_branchList[id].split("/").last();
-
-  //QString cmd = "git merge " + branchName;
-
-////  qDebug() << cmd;
-  //m_command->execute(cmd);
- //// qDebug() << m_command->output();
 }
-//void GBranchView::onRemoteButtonClicked(const QString& branchName) {
-  ////QString remoteName = m_branchList[id];
-  ////qDebug() << remoteName;
 
-  ////QRegExp rx("refs/remotes/(.+)");
-  ////int pos = remoteName.indexOf(rx);
-  ////if (pos >= 0){
-//////    qDebug() << rx.cap(1);
-    ////QString cmd = "git merge " + rx.cap(1);
-    ////m_command->execute(cmd);
-  ////}
-//}
 void GBranchView::onPushButtonClicked() {
   //get the selected remote
   if (m_password == "" || m_username == "") {
@@ -126,25 +113,23 @@ void GBranchView::onPushButtonClicked() {
   QString remoteUrl = m_command->gitRemoteUrl(remoteName);
   m_command->setPassword(m_password);
   m_command->setUsername(m_username);
+  this->setEnabled(false);
   bool result = m_command->gitPush(remoteUrl);
-  if (result) qDebug() << "success push";
-  else qDebug() << "error push";
   return;
 }
 
 void GBranchView::onFetchButtonClicked() {
    //get the selected remote
-  if (m_password == "") {
-    QMessageBox::warning(this, tr("warning"), tr("please set the password in the setting dialog"));
+  if (m_password == "" || m_username == "") {
+    QMessageBox::warning(this, tr("warning"), tr("please set the password or in the setting dialog"));
     return;
   }
   QString remoteName = m_remoteNames->currentText();
-  QString remoteUrl = getRemoteUrl(remoteName);
+  QString remoteUrl = m_command->gitRemoteUrl(remoteName);
   m_command->setPassword(m_password);
   m_command->setUsername(m_username);
+  this->setEnabled(false);
   bool result = m_command->gitFetch(remoteUrl);
-  if (result) qDebug() << "success fetch";
-  else qDebug() << "error fetch";
   return;
 }
 QString GBranchView::getRemoteUrl(const QString& remoteName) {
@@ -175,22 +160,12 @@ void GBranchView::onNewBranchButtonClicked() {
     }
     else {
       m_command->createBranch(branchName);
+      emit branchChanged();
     }
   }
 }
 /**************delete one new branch**********/
 void GBranchView::onRmBranchButtonClicked(const QString& branchName) {
-  //git_reference* branch;
-  //int error = git_reference_lookup(&branch, m_repo, m_branchList[id].toLocal8Bit().constData());
-  //if (error < GIT_SUCCESS) {
-    //qDebug() << "Can't get the branch"; 
-    //return;
-  //}
-  //error = git_reference_delete(branch);
-  //if (error < GIT_SUCCESS) {
-    //qDebug() << "can't delete";
-    //return;
-  //}
   bool result = m_command->gitDeleteBranch(branchName);
   if (result) qDebug() << "success remove " << branchName;
   else qDebug() << "error remove " << branchName;
@@ -205,6 +180,7 @@ void GBranchView::onNewRemoteButtonClicked() {
         QMessageBox::warning(this, tr("warning"), tr("Branch Name Exits"));
     else {
       m_command->createRemote(remoteName, url);
+      emit branchChanged();
     }
   }
 }
@@ -296,4 +272,25 @@ void GBranchView::updateView()
   m_remoteNames->addItems(m_remoteList);
   setupLocalBranchesArea();
   setupRemoteBranchesArea();
+}
+void GBranchView::onProcessFinished()
+{
+  this->setEnabled(true); 
+}
+void GBranchView::gitSynchronize(const QString& branch, const QString& remote)
+{
+  QString remoteUrl = m_command->gitRemoteUrl(remote);
+  m_command->setPassword(m_password);
+  m_command->setUsername(m_username);
+  this->setEnabled(false);
+  bool result = m_command->gitFetch(remoteUrl);
+  QString remoteBranch = QString("%1/%2").arg(remote).arg(branch);
+  result = m_command->gitMergeBranch(remoteBranch);
+  result = m_command->gitPush(remoteUrl);
+}
+void GBranchView::onSyncButtonClicked()
+{
+  QString remoteName = m_remoteNames->currentText();
+  QString branch = m_command->gitRefHead();
+  this->gitSynchronize(branch, remoteName);
 }

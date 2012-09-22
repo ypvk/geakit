@@ -53,19 +53,13 @@ void GitCommand::processFinished(int exitCode, QProcess::ExitStatus exitStatus) 
   }
   else 
   {
-    qDebug() << "in the process, exitCode: " << exitCode;
+    qDebug() << "process, exitCode: " << exitCode;
   }
     this->removeEnviroment();
     emit finishedProcess();
 }
 void GitCommand::onProcessStateChanged(QProcess::ProcessState processState) {
   qDebug() << "status: " << processState;
- /* if (QProcess::Running == processState) {
-   //m_process->write(m_password.toLocal8Bit());
-   //m_process->closeWriteChannel();
-    qDebug() << "stats running";
-  } 
-  */
 }
 void GitCommand::execute(const QString& cmd) {
   QStringList argList = cmd.split(" ");
@@ -83,8 +77,8 @@ void GitCommand::execute(const QString& cmd) {
     qDebug() << "error start process ";
     return;
   }
-//  while(false == m_process->waitForFinished(m_waitTime));
-  m_process->waitForFinished(m_waitTime);
+  while(false == m_process->waitForFinished(m_waitTime));
+  //m_process->waitForFinished(m_waitTime);
 }
 const QString& GitCommand::output() const {
   return m_output;
@@ -109,7 +103,7 @@ bool GitCommand::removeGitDir(const QString& dirName) {
   QStringList files = dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
   QList<QString>::iterator it = files.begin();
   for ( ;it != files.end(); it++) {
-    QString filePath = QDir::convertSeparators(dir.path() + "/" + (*it));
+    QString filePath = QDir::toNativeSeparators(dir.path() + "/" + (*it));
     QFileInfo fileInfo(filePath);
     if (fileInfo.isFile() || fileInfo.isSymLink()) {
       QFile::setPermissions(filePath, QFile::WriteOwner);
@@ -125,7 +119,7 @@ bool GitCommand::removeGitDir(const QString& dirName) {
     }
   }
 
-  if (!dir.rmdir(QDir::convertSeparators(dir.path()))) {
+  if (!dir.rmdir(QDir::toNativeSeparators(dir.path()))) {
     qDebug() << "error remove the dir.path()";
     error = true;
   }
@@ -403,10 +397,11 @@ bool GitCommand::gitDeleteBranch(const QString& branchName)
 QStringList GitCommand::gitRemoteBranches(const QString& remoteName)
 {
   QStringList remoteBranches;
-  QStringList branches = gitRefs(GIT_REF_OID);
+  QString headPoint = "HEAD";
+  QStringList branches = gitRefs();
   QStringList::const_iterator it = branches.constBegin();
   for (; it != branches.constEnd(); it++) {
-    if ((*it).contains(remoteName)){
+    if (it->contains(remoteName) && !it->contains(headPoint)){
       remoteBranches << it->section('/', -2, -1);
     }
   }
@@ -476,6 +471,7 @@ bool GitCommand::gitPush(const QString& url)
     return false;
   }
   QString cmd = QString("git push %1").arg(url);
+  this->setWaitTime(0);
   this->execute(cmd);
   qDebug() << this->output();
   //TODO
@@ -499,6 +495,7 @@ bool GitCommand::gitFetch(const QString& url)
     return false;
   }
   QString cmd = QString("git fetch %1").arg(url);
+  this->setWaitTime(0);
   this->execute(cmd);
   qDebug() << this->output();
   //TODO
