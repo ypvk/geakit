@@ -375,6 +375,7 @@ bool GitCommand::gitChangeBranch(const QString& branchName)
     qDebug() << "error change the branch";
     return false;
   }  
+  this->gitCheckoutHEAD();
   git_reference_free(newHead);
   return true;
 }
@@ -495,10 +496,7 @@ bool GitCommand::gitFetch(const QString& url)
     return false;
   }
   QString cmd = QString("git fetch %1").arg(url);
-  this->setWaitTime(0);
-  this->execute(cmd);
-  qDebug() << this->output();
-  //TODO
+  qDebug() << this->runSyc(cmd);
   return true;
 }
 bool GitCommand::setupEnvironment()
@@ -525,6 +523,114 @@ void GitCommand::removeEnviroment()
     file.remove();
   }
 }
+
+bool GitCommand::gitCheckoutHEAD()
+{
+  git_indexer_stats stats;
+  int error = git_checkout_head(this->m_repo, NULL, &stats);
+  qDebug() << "processed: " << stats.processed << "total: " << stats.total;
+  if (error < GIT_OK) {
+    qDebug() << "error!" << "error code:" << error;
+    return false;
+    }
+  return true;
+}
+bool GitCommand::gitCheckoutIndex()
+{
+  git_indexer_stats stats;
+  int error = git_checkout_index(this->m_repo, NULL, &stats);
+  qDebug() << "processed: " << stats.processed << "total: " << stats.total;
+  if (error < GIT_OK) {
+    qDebug() << "error!" << "error code:" << error;
+    return false;
+    }
+  return true;
+}
+bool GitCommand::gitCheckoutTree()
+{
+  git_reference* head;
+  git_indexer_stats stats;
+  git_repository_head(&head, m_repo);
+  int error;
+  if (error < GIT_OK)
+  { 
+    qDebug() << "error get head oid";
+  }
+  const git_oid* refoid = git_reference_oid(head);
+  git_commit* commit;
+  error = git_commit_lookup(&commit, m_repo, refoid);
+  if (error < GIT_OK)
+  {
+    qDebug() << "error";
+  }
+  error = git_checkout_tree(m_repo, (git_object*)commit, NULL, &stats);
+  if (error < GIT_OK)
+  {
+    qDebug() << "error";
+    git_reference_free(head);
+    git_commit_free(commit);
+    return false;
+  }
+  git_reference_free(head);
+  git_commit_free(commit);
+  return true;
+}
+int GitCommand::runSyc(const QString& cmd)
+{
+  QStringList argList = cmd.split(" ");
+  QString firstCmd = argList[0];
+  argList.pop_front();
+  return m_process->execute(firstCmd, argList);
+}
+bool GitCommand::gitCommit(const QString& message, const QString& name, const QString& email)
+{
+  /************index => tree*****************/
+  int error;
+  git_oid oid;
+  git_index* m_index;
+  git_tree* m_tree;
+  git_commit* m_commit;
+  git_reference* head;
+  const git_oid* head_oid;
+
+  //get the tree oid and then commit
+  error = git_repository_head(&head, m_repo);
+  if (error < GIT_OK) return false;
+  head_oid = git_reference_oid(head);
+  error = git_repository_index(&m_index, m_repo);
+  error = git_tree_create_fromindex(&oid, m_index);
+  error = git_tree_lookup(&m_tree, m_repo, &oid);
+  error = git_commit_lookup(&m_commit, m_repo, head_oid);
+
+  git_signature* committer_signature;
+  error = git_signature_now(&committer_signature, name.toLocal8Bit().constData(), email.toLocal8Bit().constData());
+  const git_signature* author_signature = git_commit_author(m_commit);
+  //create commit
+  const git_commit* parents[] = {m_commit};
+  error = git_commit_create(
+      &oid,
+      m_repo,
+      "HEAD", //update the HEAD
+      author_signature,
+      committer_signature,
+      NULL,
+      message.toLocal8Bit().constData(),
+      m_tree,
+      1,
+      parents
+      );
+
+  git_index_free(m_index);
+  git_index_write(m_index);
+  git_signature_free(committer_signature);
+  git_commit_free(m_commit);
+  git_index_free(m_index);
+  git_tree_free(m_tree);
+  git_reference_free(head);
+
+  return true;
+}
+
 GitCommand::~GitCommand() {
 }
 

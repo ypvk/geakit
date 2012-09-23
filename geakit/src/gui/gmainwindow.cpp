@@ -298,6 +298,7 @@ void GMainWindow::updateView() {
 
   m_branchViewWidget->setPassword(m_account->password());
   m_branchViewWidget->setUsername(m_account->username());
+  m_codeViewWidget->setAccount(m_account);
 
   m_widgets->insertWidget(1, m_codeViewWidget);
   m_widgets->insertWidget(2, m_commitViewWidget);

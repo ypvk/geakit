@@ -20,7 +20,12 @@ int main (int argc, char* argv[])
   qDebug() << "5" << cmd->gitTags();
   qDebug() << "6" << cmd->gitRefHead();
   qDebug() << "7" << cmd->gitRemoteBranches("origin");
-  qDebug() << "8" << cmd->gitChangeBranch("abc");
+  //qDebug() << "8" << cmd->gitChangeBranch("abc");
+  qDebug() << "10" << "gitCheckoutHEAD() " << cmd->gitCheckoutHEAD();
+  qDebug() << "11" << "gitCheckoutIndex() " << cmd->gitCheckoutIndex();
+  qDebug() << "12" << "gitCheckoutTree() " << cmd->gitCheckoutTree();
+  QString remoteUrl = cmd->gitRemoteUrl("origin");
+  qDebug() << "13" << "gitFetch()" << cmd->gitFetch(remoteUrl);
   try {
   qDebug() << "9" << cmd->gitRemoteUrl("origin"); 
   }catch(...)

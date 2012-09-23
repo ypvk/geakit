@@ -2,6 +2,7 @@
 #include "gitcommand.h"
 #include "gcommitdialog.h"
 #include "gcodevieweditor.h"
+#include "data/account.h"
 
 #include <QHeaderView>
 #include <QPointer>
@@ -84,7 +85,6 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 
   m_command = new GitCommand(this, m_workdirRoot);
   m_command->setRepository(m_repos);
-  m_commitOid = m_command->gitHeadCommitOid();
 
   QStringList branches = m_command->gitBranches();
   m_branches->addItems(branches);
@@ -203,59 +203,13 @@ void GCodeView::gitCommit() {
     delete dlg;
     return;
   }
-  qDebug() << QString("messags is %1").arg(commitMessage);
-  //first get the new tree
-  /************index => tree*****************/
-  int error;
-  git_oid oid;
-  git_index* m_index;
-  git_tree* m_tree;
-  git_commit* m_commit;
 
-  //get the tree oid and then commit
-  error = git_repository_index(&m_index, m_repos);
-  error = git_tree_create_fromindex(&oid, m_index);
-  error = git_tree_lookup(&m_tree, m_repos, &oid);
-  error = git_oid_fromstr(&oid, m_commitOid.toLocal8Bit().constData());
-  error = git_commit_lookup(&m_commit, m_repos, &oid);
-  //get the author signature
-  git_config* m_config;
-  const char* userName;
-  const char* userEmail;
-  error = git_config_open_default(&m_config);
-  error = git_config_get_string(&userName, m_config, "user.name");
-  error = git_config_get_string(&userEmail, m_config, "user.email");
-  git_signature* author_signature;
+  if (!m_command->gitCommit(commitMessage, m_account->fullname(), m_account->email()))
+  {
+    qDebug() << "error commit";
+    return;
+  }
 
-  error = git_signature_now(&author_signature, userName, userEmail);
-  //create commit
-  const git_commit* parents[] = {m_commit};
-  error = git_commit_create(
-      &oid,
-      m_repos,
-      "HEAD", //update the HEAD
-      author_signature,
-      author_signature,
-      NULL,
-      commitMessage.toLocal8Bit().constData(),
-      m_tree,
-      1,
-      parents
-      );
-  char oidStr[41] = {0};
-  git_oid_fmt(oidStr, &oid);
-  qDebug() << "commit oid is: " << oidStr;
-  /************update the commit oid*****************/
-  m_commitOid = QString(oidStr);
-  /******************end****************************/
-
-  git_index_free(m_index);
-  git_index_write(m_index);
-  git_config_free(m_config);
-  git_signature_free(author_signature);
-  git_commit_free(m_commit);
-  git_index_free(m_index);
-  git_tree_free(m_tree);
   //update the view(status)
   /** now delete the file on the disk if the file is deleted in the indexed**/
   QDir dirDelete(m_workdirRoot);
@@ -433,7 +387,17 @@ void GCodeView::changeToBranch(const QString& branchName)
 }
 void GCodeView::onBranchChanged()
 {
+  QStringList branches = m_command->gitBranches();
+  m_branches->clear();
+  m_branches->addItems(branches);
+  QString currentBranch = m_command->gitRefHead();
+  int index = branches.indexOf(currentBranch);
+  m_branches->setCurrentIndex(index);
   QDir dir(m_workdirRoot);
   m_tmpRoot.clear();
   updateView(dir);
+}
+void GCodeView::setAccount(GAccount* account)
+{
+  this->m_account = account;
 }

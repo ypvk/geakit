@@ -42,11 +42,16 @@ class GitCommand : public QThread
     bool gitMergeBranch(const QString& branchName);
     bool gitPush(const QString& url);
     bool gitFetch(const QString& url);
+    bool gitCheckoutHEAD();
+    bool gitCheckoutIndex();
+    bool gitCheckoutTree();
+    bool gitCommit(const QString& message, const QString& name, const QString& email);
     QString gitRemoteUrl(const QString& remoteName);
     const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
   private:
+    int runSyc(const QString& cmd);
     bool setupEnvironment();
     void removeEnviroment();
   signals:

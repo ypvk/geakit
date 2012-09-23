@@ -17,12 +17,14 @@ class QComboBox;
 class GitCommand;
 class GCommitDialog;
 class GCodeViewEditor;
+class GAccount;
 
 class GCodeView : public QWidget
 {
   Q_OBJECT
   public:
     explicit GCodeView(QWidget* parent = 0, git_repository* repos = 0);
+    void setAccount(GAccount* account);
     ~GCodeView();
   signals:
     void reposDataChanged();
@@ -55,7 +57,6 @@ class GCodeView : public QWidget
     GitCommand* m_command;//command to do the git command
     QList<QTreeWidgetItem*> m_selectedItems;//selected items
     QStringList m_filesToDelete; //file delete after commit
-    QString m_commitOid;//head commit oid string
     QSettings m_setting;//settings to save the modified tree
     QLabel* m_path;
     QLineEdit* m_currentDir;//current dir
@@ -63,5 +64,6 @@ class GCodeView : public QWidget
     QGroupBox* m_contentArea;
     QComboBox* m_branches;
     GCodeViewEditor* m_editor;
+    GAccount* m_account;
 };
 #endif
