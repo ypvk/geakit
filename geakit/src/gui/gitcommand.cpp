@@ -633,6 +633,52 @@ bool GitCommand::gitCommit(const QString& message, const QString& name, const QS
   return true;
 }
 
+int GitCommand::gitDiffWorkDirToIndex()
+{
+  git_diff_list* diff;
+  git_diff_options opts = {0};
+  opts.flags = GIT_DIFF_REVERSE | GIT_DIFF_INCLUDE_UNTRACKED;
+  int error = git_diff_workdir_to_index(m_repo, &opts, &diff);
+  if (error < GIT_OK) {
+    qDebug() << "error diff";
+    return;
+  }
+  qDebug() << "diff size : " << git_diff_entrycount(diff, -1);
+  error = git_diff_print_compact(diff, NULL, printer);
+  git_diff_list_free(diff);
+}
+int GitCommand::printer(void *data, git_diff_delta *delta, git_diff_range *range, char usage, const char *line, size_t line_len)
+{
+  qDebug() << line;
+}
+
+int GitCommand::gitDiffIndexToTree()
+{
+  git_reference* head;
+  git_commit* commit;
+  git_tree* tree;
+  git_diff_list* diff;
+  git_diff_iterator* iterator;
+  git_diff_options opts = {0};
+  opts.flags = GIT_DIFF_REVERSE;
+
+  git_repository_head(&head, m_repo);
+  int error;
+  if (error < GIT_OK)
+  { 
+    qDebug() << "error get head oid";
+  }
+  const git_oid* refoid = git_reference_oid(head);
+  error = git_commit_lookup(&commit, m_repo, refoid);
+  error = git_commit_tree(&tree, commit);
+  error = git_diff_index_to_tree(m_repo, &opts, tree, &diff);
+  qDebug() << "diff size : " << git_diff_entrycount(diff, -1);
+  error = git_diff_print_compact(diff, NULL, printer);
+  git_diff_list_free(diff);
+  git_reference_free(head);
+  git_tree_free(tree);
+  git_commit_free(commit);
+}
 GitCommand::~GitCommand() {
 }
 

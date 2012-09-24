@@ -29,6 +29,8 @@ class GitCommand : public QThread
     void gitResetConfigUrl(const QString& url);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
+    int gitDiffWorkDirToIndex();
+    int gitDiffIndexToTree();
     void gitReverse();
     QString gitRefHead();
     QStringList gitRefs(git_ref_t ref_type = GIT_REF_LISTALL);
@@ -54,6 +56,7 @@ class GitCommand : public QThread
     int runSyc(const QString& cmd);
     bool setupEnvironment();
     void removeEnviroment();
+    static int printer(void*, git_diff_delta*, git_diff_range*, char, const char*, size_t);
   signals:
     void finishedProcess();//add signals if process is finished
   private slots:
