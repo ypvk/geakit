@@ -528,7 +528,7 @@ bool GitCommand::gitCheckoutHEAD()
 {
   git_indexer_stats stats;
   git_checkout_opts opts = {0};
-  opts.checkout_strategy = GIT_CHECKOUT_OVERWRITE_MODIFIED | GIT_CHECKOUT_CREATE_MISSING;
+  opts.checkout_strategy = GIT_CHECKOUT_OVERWRITE_MODIFIED | GIT_CHECKOUT_CREATE_MISSING | GIT_CHECKOUT_REMOVE_UNTRACKED;
   int error = git_checkout_head(this->m_repo, &opts, &stats);
   qDebug() << "processed: " << stats.processed << "total: " << stats.total;
   if (error < GIT_OK) {
