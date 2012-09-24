@@ -26,10 +26,10 @@ int main (int argc, char* argv[])
   //qDebug() << "12" << "gitCheckoutTree() " << cmd->gitCheckoutTree();
   QString remoteUrl = cmd->gitRemoteUrl("origin");
   qDebug() << "13" << "gitFetch()" << cmd->gitFetch(remoteUrl);
-  qDebug() << "14" << "gitDiffWorkDirToIndex";
-  cmd->gitDiffWorkDirToIndex();
-  qDebug() << "15" << "gitDiffIndexToTree";
-  cmd->gitDiffIndexToTree();
+  qDebug() << "14" << "gitDiffWorkDirToIndex" << cmd->gitDiffWorkDirToIndex();
+  qDebug() << cmd->diffFileInfosIndex;
+  qDebug() << "15" << "gitDiffIndexToTree" << cmd->gitDiffIndexToTree();
+  qDebug() << cmd->diffFileInfosTree;
   try {
   qDebug() << "9" << cmd->gitRemoteUrl("origin"); 
   }catch(...)

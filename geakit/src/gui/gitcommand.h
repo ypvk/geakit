@@ -52,6 +52,9 @@ class GitCommand : public QThread
     const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
+  public:
+    static QString diffFileInfosIndex;
+    static QString diffFileInfosTree;
   private:
     int runSyc(const QString& cmd);
     bool setupEnvironment();

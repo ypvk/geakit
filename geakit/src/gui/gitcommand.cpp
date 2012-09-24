@@ -4,6 +4,9 @@
 
 const static QString TAG_HEAD = "refs/tags/";
 const static QString BRANCH_HEAD = "refs/heads/";
+QString GitCommand::diffFileInfosIndex = "";
+QString GitCommand::diffFileInfosTree = "";
+
 
 GitCommand::GitCommand(QObject* parent, const QString& workDir) : QThread(parent), m_workDir(workDir)
 {
@@ -641,15 +644,26 @@ int GitCommand::gitDiffWorkDirToIndex()
   int error = git_diff_workdir_to_index(m_repo, &opts, &diff);
   if (error < GIT_OK) {
     qDebug() << "error diff";
-    return;
+    return -1;
   }
-  qDebug() << "diff size : " << git_diff_entrycount(diff, -1);
-  error = git_diff_print_compact(diff, NULL, printer);
+  int diffSize = git_diff_entrycount(diff, -1);
+  qDebug() << "diff size : " << diffSize;
+  diffFileInfosIndex.clear();
+  char data[] = "index";
+  error = git_diff_print_compact(diff, data, printer);
   git_diff_list_free(diff);
+
+  return diffSize;
 }
 int GitCommand::printer(void *data, git_diff_delta *delta, git_diff_range *range, char usage, const char *line, size_t line_len)
 {
-  qDebug() << line;
+  if (0 == strcmp(static_cast<char*>(data), "index")) {
+    diffFileInfosIndex += line;
+  }
+  else
+  {
+    diffFileInfosTree += line;
+  }
 }
 
 int GitCommand::gitDiffIndexToTree()
@@ -672,12 +686,17 @@ int GitCommand::gitDiffIndexToTree()
   error = git_commit_lookup(&commit, m_repo, refoid);
   error = git_commit_tree(&tree, commit);
   error = git_diff_index_to_tree(m_repo, &opts, tree, &diff);
-  qDebug() << "diff size : " << git_diff_entrycount(diff, -1);
-  error = git_diff_print_compact(diff, NULL, printer);
+  int diffSize = git_diff_entrycount(diff, -1);
+  qDebug() << "diff size : " << diffSize;
+  diffFileInfosTree.clear();
+  char data[] = "tree";
+  error = git_diff_print_compact(diff, data, printer);
   git_diff_list_free(diff);
   git_reference_free(head);
   git_tree_free(tree);
   git_commit_free(commit);
+
+  return diffSize;
 }
 GitCommand::~GitCommand() {
 }
