@@ -387,12 +387,14 @@ void GCodeView::changeToBranch(const QString& branchName)
 }
 void GCodeView::onBranchChanged()
 {
+  disconnect(m_branches, 0, 0, 0);
   QStringList branches = m_command->gitBranches();
   m_branches->clear();
   m_branches->addItems(branches);
   QString currentBranch = m_command->gitRefHead();
   int index = branches.indexOf(currentBranch);
   m_branches->setCurrentIndex(index);
+  connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
   QDir dir(m_workdirRoot);
   m_tmpRoot.clear();
   updateView(dir);

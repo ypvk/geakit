@@ -372,7 +372,7 @@ bool GitCommand::gitChangeBranch(const QString& branchName)
   git_reference* newHead;
   int error = git_reference_create_symbolic(&newHead, m_repo, "HEAD", (BRANCH_HEAD + branchName).toLocal8Bit().constData(), 1);
   if (error < GIT_OK) {
-    qDebug() << "error change the branch";
+    qDebug() << "error change branch in command";
     return false;
   }  
   this->gitCheckoutHEAD();
@@ -527,7 +527,9 @@ void GitCommand::removeEnviroment()
 bool GitCommand::gitCheckoutHEAD()
 {
   git_indexer_stats stats;
-  int error = git_checkout_head(this->m_repo, NULL, &stats);
+  git_checkout_opts opts = {0};
+  opts.checkout_strategy = GIT_CHECKOUT_OVERWRITE_MODIFIED | GIT_CHECKOUT_CREATE_MISSING;
+  int error = git_checkout_head(this->m_repo, &opts, &stats);
   qDebug() << "processed: " << stats.processed << "total: " << stats.total;
   if (error < GIT_OK) {
     qDebug() << "error!" << "error code:" << error;
