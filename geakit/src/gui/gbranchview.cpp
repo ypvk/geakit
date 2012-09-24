@@ -78,7 +78,30 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
 GBranchView::~GBranchView() {
 }
 void GBranchView::onChangeButtonClicked(const QString& branchName) {
-  qDebug() << branchName;
+  //test if index doesn't commit
+  //test if index doesn't commit
+  int diffNum = m_command->gitDiffIndexToTree();
+  int diffNum1 = m_command->gitDiffWorkDirToIndex();
+  if (diffNum > 0 || diffNum1 > 0) {
+    QString message;
+    if (diffNum > 0 && diffNum1 != 0) {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+    }
+    else if (diffNum1 = 0 && diffNum != 0) {
+      message = tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+    else {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+      message = tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+
+    QMessageBox::information(this, tr("warning"), tr("changes not commit\n") + message + tr("please commit before change branch"));
+    return;
+  }
   bool result = m_command->gitChangeBranch(branchName);
   if (result) emit branchChanged();
   else {

@@ -65,5 +65,7 @@ class GCodeView : public QWidget
     QComboBox* m_branches;
     GCodeViewEditor* m_editor;
     GAccount* m_account;
+    QString m_currentBranch;
+    QStringList m_branchLists;
 };
 #endif

@@ -647,7 +647,6 @@ int GitCommand::gitDiffWorkDirToIndex()
     return -1;
   }
   int diffSize = git_diff_entrycount(diff, -1);
-  qDebug() << "diff size : " << diffSize;
   diffFileInfosIndex.clear();
   char data[] = "index";
   error = git_diff_print_compact(diff, data, printer);
@@ -687,7 +686,6 @@ int GitCommand::gitDiffIndexToTree()
   error = git_commit_tree(&tree, commit);
   error = git_diff_index_to_tree(m_repo, &opts, tree, &diff);
   int diffSize = git_diff_entrycount(diff, -1);
-  qDebug() << "diff size : " << diffSize;
   diffFileInfosTree.clear();
   char data[] = "tree";
   error = git_diff_print_compact(diff, data, printer);

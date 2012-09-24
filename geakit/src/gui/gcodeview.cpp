@@ -17,6 +17,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QComboBox>
+#include <QMessageBox>
 
 
 /*************here define a new status that file delete in the index, but still on the disk******/
@@ -86,10 +87,10 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_command = new GitCommand(this, m_workdirRoot);
   m_command->setRepository(m_repos);
 
-  QStringList branches = m_command->gitBranches();
-  m_branches->addItems(branches);
-  QString currentBranch = m_command->gitRefHead();
-  int index = branches.indexOf(currentBranch);
+  m_branchLists = m_command->gitBranches();
+  m_branches->addItems(m_branchLists);
+  m_currentBranch = m_command->gitRefHead();
+  int index = m_branchLists.indexOf(m_currentBranch);
   m_branches->setCurrentIndex(index);
   connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
 
@@ -373,12 +374,43 @@ void GCodeView::gitReverse() {
 }
 void GCodeView::changeToBranch(const QString& branchName)
 {
-  qDebug() <<"change to branch: " << branchName;
+  //test if index doesn't commit
+  int diffNum = m_command->gitDiffIndexToTree();
+  int diffNum1 = m_command->gitDiffWorkDirToIndex();
+  if (diffNum > 0 || diffNum1 > 0) {
+    QString message;
+    if (diffNum > 0 && diffNum1 != 0) {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+    }
+    else if (diffNum1 = 0 && diffNum != 0) {
+      message = tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+    else {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+      message = tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+
+    QMessageBox::information(this, tr("warning"), tr("changes not commit\n") + message + tr("please commit before change branch"));
+    disconnect(m_branches, 0, 0, 0);
+    int index = m_branchLists.indexOf(m_currentBranch);
+    m_branches->setCurrentIndex(index);
+    connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
+    return;
+  }
   bool result = m_command->gitChangeBranch(branchName);
   if (!result) {
     qDebug() << "error change branch";
+    disconnect(m_branches, 0, 0, 0);
+    int index = m_branchLists.indexOf(m_currentBranch);
+    m_branches->setCurrentIndex(index);
+    connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
     return;
   }
+  m_currentBranch = branchName;
   QDir dir(m_workdirRoot);
   m_tmpRoot.clear();
   updateView(dir);
@@ -388,11 +420,11 @@ void GCodeView::changeToBranch(const QString& branchName)
 void GCodeView::onBranchChanged()
 {
   disconnect(m_branches, 0, 0, 0);
-  QStringList branches = m_command->gitBranches();
+  m_branchLists = m_command->gitBranches();  
   m_branches->clear();
-  m_branches->addItems(branches);
-  QString currentBranch = m_command->gitRefHead();
-  int index = branches.indexOf(currentBranch);
+  m_branches->addItems(m_branchLists);
+  m_currentBranch = m_command->gitRefHead();
+  int index = m_branchLists.indexOf(m_currentBranch);
   m_branches->setCurrentIndex(index);
   connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
   QDir dir(m_workdirRoot);
