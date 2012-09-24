@@ -112,7 +112,8 @@ void GProjectsView::addProjectToLocal() {
     m_command->gitClone(projectName, reposUrl);
     m_projectsLocal->setEnabled(false);
     QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
-    QString tmpText = QString("%1:\t%2/%1").arg(projectName).arg(dirName);
+    QString proPath = QDir::toNativeSeparators(QString("%1/%2").arg(dirName).arg(projectName));
+    QString tmpText = QString("%1:\t%2").arg(projectName).arg(proPath);
     item->setText(tmpText);
     m_projectsLocal->addItem(item);
     it++;
