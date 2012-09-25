@@ -63,6 +63,8 @@ void GMainWindow::onSettingsActionTriggered()
   if(dlg->exec())
   {
     m_account->copy(dlg->account());
+    m_branchViewWidget->setAccount(m_account);
+    m_codeViewWidget->setAccount(m_account);
   }
   delete dlg;
 }
@@ -296,8 +298,7 @@ void GMainWindow::updateView() {
   m_commitViewWidget = new GCommitView(this, m_currentRepo);
   m_branchViewWidget = new GBranchView(this, m_currentRepo);
 
-  m_branchViewWidget->setPassword(m_account->password());
-  m_branchViewWidget->setUsername(m_account->username());
+  m_branchViewWidget->setAccount(m_account);
   m_codeViewWidget->setAccount(m_account);
 
   m_widgets->insertWidget(1, m_codeViewWidget);

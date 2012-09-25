@@ -12,6 +12,7 @@
 #include <QHBoxLayout>
 #include <QComboBox>
 #include <iostream>
+#include "data/account.h"
 #include "gitcommand.h"
 #include "gbranchnamedialog.h"
 #include "gremotenamedialog.h"
@@ -32,7 +33,6 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_command = new GitCommand(this, path);
   m_command->setRepository(m_repo);
 
-  m_password = "";
   QWidget* mainWidget = new QWidget(this);
   m_mainLayout = new QVBoxLayout(this);
 
@@ -122,14 +122,14 @@ void GBranchView::onMergeButtonClicked(const QString& branchName) {
 
 void GBranchView::onPushButtonClicked() {
   //get the selected remote
-  if (m_password == "" || m_username == "") {
+  if (m_account->password() == "" || m_account->username() == "") {
     QMessageBox::warning(this, tr("warning"), tr("please set the password or username in the setting dialog"));
     return;
   }
   QString remoteName = m_remoteNames->currentText();
   QString remoteUrl = m_command->gitRemoteUrl(remoteName);
-  m_command->setPassword(m_password);
-  m_command->setUsername(m_username);
+  m_command->setPassword(m_account->password());
+  m_command->setUsername(m_account->username());
   this->setEnabled(false);
   bool result = m_command->gitPush(remoteUrl);
   return;
@@ -137,34 +137,38 @@ void GBranchView::onPushButtonClicked() {
 
 void GBranchView::onFetchButtonClicked() {
    //get the selected remote
-  if (m_password == "" || m_username == "") {
+  if (m_account->password() == "" || m_account->username() == "") {
     QMessageBox::warning(this, tr("warning"), tr("please set the password or in the setting dialog"));
     return;
   }
   QString remoteName = m_remoteNames->currentText();
   QString remoteUrl = m_command->gitRemoteUrl(remoteName);
-  m_command->setPassword(m_password);
-  m_command->setUsername(m_username);
+  m_command->setPassword(m_account->password());
+  m_command->setUsername(m_account->username());
   this->setEnabled(false);
   bool result = m_command->gitFetch(remoteUrl);
   return;
 }
-QString GBranchView::getRemoteUrl(const QString& remoteName) {
-  //git_remote* m_remote;
-  //int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
-  //QString remoteUrl = QString(git_remote_url(m_remote));
-  QString remoteUrl = m_command->gitRemoteUrl(remoteName);
-  QStringList strList = remoteUrl.split("@");
-  QString realUrl = strList[0] + ":" + m_password + "@" + strList[1];
-  qDebug() << realUrl;
-  //git_remote_free(m_remote);
-  return realUrl;
-}
-void GBranchView::setPassword(const QString& password) {
-  m_password = password;
-}
-void GBranchView::setUsername(const QString& username) {
-  m_username = username;
+//QString GBranchView::getRemoteUrl(const QString& remoteName) {
+  ////git_remote* m_remote;
+  ////int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
+  ////QString remoteUrl = QString(git_remote_url(m_remote));
+  //QString remoteUrl = m_command->gitRemoteUrl(remoteName);
+  //QStringList strList = remoteUrl.split("@");
+  //QString realUrl = strList[0] + ":" + m_password + "@" + strList[1];
+  //qDebug() << realUrl;
+  ////git_remote_free(m_remote);
+  //return realUrl;
+//}
+//void GBranchView::setPassword(const QString& password) {
+  //m_password = password;
+//}
+//void GBranchView::setUsername(const QString& username) {
+  //m_username = username;
+//}
+void GBranchView::setAccount(GAccount* account)
+{
+  m_account = account;
 }
 void GBranchView::onNewBranchButtonClicked() {
   GBranchNameDialog dlg;
@@ -296,9 +300,13 @@ void GBranchView::onProcessFinished()
 }
 void GBranchView::gitSynchronize(const QString& branch, const QString& remote)
 {
+  if (m_account->password() == "" || m_account->username() == "") {
+    QMessageBox::warning(this, tr("warning"), tr("please set the password or in the setting dialog"));
+    return;
+  }
   QString remoteUrl = m_command->gitRemoteUrl(remote);
-  m_command->setPassword(m_password);
-  m_command->setUsername(m_username);
+  m_command->setPassword(m_account->password());
+  m_command->setUsername(m_account->username());
   this->setEnabled(false);
   bool result = m_command->gitFetch(remoteUrl);
   QString remoteBranch = QString("%1/%2").arg(remote).arg(branch);

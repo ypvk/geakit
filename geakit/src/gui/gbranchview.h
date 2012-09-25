@@ -12,14 +12,14 @@ class QPushButton;
 class GitCommand;
 class QComboBox;
 class QVBoxLayout;
+class GAccount;
 
 class GBranchView : public QWidget
 {
   Q_OBJECT
   public:
     explicit GBranchView(QWidget* parent = 0, git_repository* repo = 0);
-    void setPassword(const QString& password);
-    void setUsername(const QString& username);
+    void setAccount(GAccount* account);
     ~GBranchView();
   signals:
     void branchChanged();
@@ -37,7 +37,7 @@ class GBranchView : public QWidget
     void onSyncButtonClicked();
     void onProcessFinished();
   private:
-    QString getRemoteUrl(const QString& remoteName);
+    //QString getRemoteUrl(const QString& remoteName);
     void setupLocalBranchesArea();
     void setupRemoteBranchesArea();
     void gitSynchronize(const QString& branch, const QString& remote);
@@ -54,8 +54,7 @@ class GBranchView : public QWidget
     QStringList m_branchList;
     QStringList m_remoteList;
     QHash<QString, QStringList> m_remoteBranchesHash;
-    QString m_password;
-    QString m_username;
+    GAccount* m_account;
     QComboBox* m_remoteNames;
     QVBoxLayout* m_mainLayout;
 
