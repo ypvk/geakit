@@ -79,23 +79,22 @@ GBranchView::~GBranchView() {
 }
 void GBranchView::onChangeButtonClicked(const QString& branchName) {
   //test if index doesn't commit
-  //test if index doesn't commit
   int diffNum = m_command->gitDiffIndexToTree();
   int diffNum1 = m_command->gitDiffWorkDirToIndex();
   if (diffNum > 0 || diffNum1 > 0) {
     QString message;
-    if (diffNum > 0 && diffNum1 != 0) {
+    if (diffNum > 0 && diffNum1 == 0) {
       message = tr("add not commit:\n");
       message += m_command->diffFileInfosTree;
     }
-    else if (diffNum1 = 0 && diffNum != 0) {
+    else if (diffNum1 > 0 && diffNum == 0) {
       message = tr("modified not add:\n");
       message += m_command->diffFileInfosIndex;
     }
     else {
       message = tr("add not commit:\n");
       message += m_command->diffFileInfosTree;
-      message = tr("modified not add:\n");
+      message += tr("modified not add:\n");
       message += m_command->diffFileInfosIndex;
     }
 
@@ -110,13 +109,37 @@ void GBranchView::onChangeButtonClicked(const QString& branchName) {
   }
 }
 void GBranchView::onMergeButtonClicked(const QString& branchName) {
+  int diffNum = m_command->gitDiffIndexToTree();
+  int diffNum1 = m_command->gitDiffWorkDirToIndex();
+  if (diffNum > 0 || diffNum1 > 0) {
+    QString message;
+    if (diffNum > 0 && diffNum1 == 0) {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+    }
+    else if (diffNum1 > 0 && diffNum == 0) {
+      message = tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+    else {
+      message = tr("add not commit:\n");
+      message += m_command->diffFileInfosTree;
+      message += tr("modified not add:\n");
+      message += m_command->diffFileInfosIndex;
+    }
+
+    QMessageBox::information(this, tr("warning"), tr("changes not commit\n") + message + tr("please commit before change branch"));
+    return;
+  }
   if (m_command->gitMergeBranch(branchName)) {
     qDebug() << "success merge " << branchName;
+    emit contentsChanged();
     return;
   }
   else {
-    qDebug() << "error merge " << branchName;
-    return;
+    QString message = m_command->diffFileInfosIndex;
+    QMessageBox::information(this, tr("warning"), tr("merge conflict\n") + message + tr("reset or fix my yourself"));
+    emit contentsChanged();
   }
 }
 

@@ -311,6 +311,8 @@ void GMainWindow::updateView() {
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
   connect(m_codeViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
+  connect(m_branchViewWidget, SIGNAL(contentsChanged()), m_commitViewWidget, SLOT(updateCommitView()));
+  connect(m_branchViewWidget, SIGNAL(contentsChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
 }
 void GMainWindow::updateBranchView() {
   int index = m_widgets->currentIndex();
@@ -325,6 +327,8 @@ void GMainWindow::updateBranchView() {
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_commitViewWidget, SLOT(updateCommitView()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
   connect(m_branchViewWidget, SIGNAL(branchChanged()), this, SLOT(updateBranchView()));
+  connect(m_branchViewWidget, SIGNAL(contentsChanged()), m_commitViewWidget, SLOT(updateCommitView()));
+  connect(m_branchViewWidget, SIGNAL(contentsChanged()), m_codeViewWidget, SLOT(onBranchChanged()));
   m_widgets->setCurrentIndex(index);
 }
 void GMainWindow::onAccessComplete(GRepositoryAPI::ResultCode resultCode) {

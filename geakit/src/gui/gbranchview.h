@@ -23,6 +23,7 @@ class GBranchView : public QWidget
     ~GBranchView();
   signals:
     void branchChanged();
+    void contentsChanged();
   public slots:
     void updateView();
   private slots:

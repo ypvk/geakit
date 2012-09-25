@@ -68,20 +68,14 @@ void GitCommand::execute(const QString& cmd) {
   QStringList argList = cmd.split(" ");
   QString firstCmd = argList[0];
   argList.pop_front();
-/*
-  qDebug() << firstCmd;
-  for( int i = 0; i < argList.size(); i++) {
-    qDebug() << argList[i];
-  }
-  */
   m_process->start(firstCmd, argList);
   if (!m_process->waitForStarted())
   {
     qDebug() << "error start process ";
     return;
   }
-  while(false == m_process->waitForFinished(m_waitTime));
-  //m_process->waitForFinished(m_waitTime);
+  //while(false == m_process->waitForFinished(m_waitTime));
+  m_process->waitForFinished(m_waitTime);
 }
 const QString& GitCommand::output() const {
   return m_output;
@@ -466,6 +460,11 @@ bool GitCommand::gitMergeBranch(const QString& branchName)
   QString cmd = "git merge " + branchName;
   this->execute(cmd);
   qDebug() << this->output();
+  int diffSize = gitDiffWorkDirToIndex();
+  if (diffSize > 0) {
+    qDebug() << "merge error";
+    return false;
+  }
   return true;
 }
 
@@ -650,6 +649,7 @@ int GitCommand::gitDiffWorkDirToIndex()
   diffFileInfosIndex.clear();
   char data[] = "index";
   error = git_diff_print_compact(diff, data, printer);
+  //error = git_diff_foreach(diff, data, NULL, NULL, printer);
   git_diff_list_free(diff);
 
   return diffSize;
@@ -663,6 +663,7 @@ int GitCommand::printer(void *data, git_diff_delta *delta, git_diff_range *range
   {
     diffFileInfosTree += line;
   }
+  return 0;
 }
 
 int GitCommand::gitDiffIndexToTree()
@@ -695,6 +696,33 @@ int GitCommand::gitDiffIndexToTree()
   git_commit_free(commit);
 
   return diffSize;
+}
+void GitCommand::gitReset()
+{
+  git_reference* head;
+  git_commit* commit;
+  int error = git_repository_head(&head, m_repo);
+  const git_oid* refoid = git_reference_oid(head);
+  error = git_commit_lookup(&commit, m_repo, refoid);
+
+  error = git_reset(m_repo, (git_object*)commit, GIT_RESET_HARD);
+  //if merge HEAD exists delete all the merge things
+  QString gitPath = QString(git_repository_path(m_repo));
+  QDir gitDir(gitPath);
+  QStringList fileList = QStringList() << "MERGE_HEAD"
+                                        << "MERGE_MSG" 
+                                        << "MERGE_MODE"
+                                        << "ORIG_HEAD";
+  for (int i = 0; i < fileList.size(); i++ )
+  {
+    if (gitDir.exists(fileList.at(i))) {
+      gitDir.remove(fileList.at(i));
+    }
+  }
+  // ********end*************/
+  git_reference_free(head);
+  git_commit_free(commit);
+  return;
 }
 GitCommand::~GitCommand() {
 }

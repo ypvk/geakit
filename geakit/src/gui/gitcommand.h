@@ -29,6 +29,7 @@ class GitCommand : public QThread
     void gitResetConfigUrl(const QString& url);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);
+    void gitReset();
     int gitDiffWorkDirToIndex();
     int gitDiffIndexToTree();
     void gitReverse();

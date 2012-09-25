@@ -22,6 +22,7 @@
 
 /*************here define a new status that file delete in the index, but still on the disk******/
 #define MY_GIT_STATUS_DELETED   12
+#define MY_GIT_STATUS_BOTH_MODIFY 18
 
 GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
 {
@@ -33,6 +34,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_gitRmButton = new QPushButton(tr("Remove"), this);
   m_gitReverseButton = new QPushButton(tr("Reverse"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
+  m_gitResetButton = new QPushButton(tr("Reset"), this);
   m_splitter = new QSplitter(this);
   m_editor = new GCodeViewEditor(this);
   m_contentArea = new QGroupBox(tr("content"), this);
@@ -60,6 +62,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   buttonLayout->addWidget(m_gitRmButton);
   buttonLayout->addWidget(m_gitReverseButton);
   buttonLayout->addWidget(m_gitCommitButton);
+  buttonLayout->addWidget(m_gitResetButton);
 
   bottomLayout->addWidget(m_splitter);
   //bottomLayout->addLayout(buttonLayout);
@@ -72,6 +75,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   connect(m_gitRmButton, SIGNAL(clicked()), this, SLOT(gitRm()));
   connect(m_gitCommitButton, SIGNAL(clicked()), this, SLOT(gitCommit()));
   connect(m_gitReverseButton, SIGNAL(clicked()), this, SLOT(gitReverse()));
+  connect(m_gitResetButton, SIGNAL(clicked()), this, SLOT(gitReset()));
 
 
   m_fileList->setHeaderLabels(QStringList() << tr("Name") << tr("status"));
@@ -337,6 +341,9 @@ void GCodeView::updateView(QDir& dir) {
           fileItem->setText(1, tr("deleted, not commit"));
           m_filesToDelete << path;
           break;
+        case MY_GIT_STATUS_BOTH_MODIFY :
+          fileItem->setText(1, tr("modify in index and wordir"));
+          break;
       }
       delete[] path;
     }
@@ -379,18 +386,18 @@ void GCodeView::changeToBranch(const QString& branchName)
   int diffNum1 = m_command->gitDiffWorkDirToIndex();
   if (diffNum > 0 || diffNum1 > 0) {
     QString message;
-    if (diffNum > 0 && diffNum1 != 0) {
+    if (diffNum > 0 && diffNum1 == 0) {
       message = tr("add not commit:\n");
       message += m_command->diffFileInfosTree;
     }
-    else if (diffNum1 = 0 && diffNum != 0) {
+    else if (diffNum1 > 0 && diffNum == 0) {
       message = tr("modified not add:\n");
       message += m_command->diffFileInfosIndex;
     }
     else {
       message = tr("add not commit:\n");
       message += m_command->diffFileInfosTree;
-      message = tr("modified not add:\n");
+      message += tr("modified not add:\n");
       message += m_command->diffFileInfosIndex;
     }
 
@@ -427,6 +434,17 @@ void GCodeView::onBranchChanged()
   int index = m_branchLists.indexOf(m_currentBranch);
   m_branches->setCurrentIndex(index);
   connect(m_branches, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeToBranch(QString)));
+  QDir dir(m_workdirRoot);
+  m_tmpRoot.clear();
+  updateView(dir);
+}
+void GCodeView::gitReset()
+{
+  int reply = QMessageBox::question(this, tr("warning"), tr("Do you really want to reset all changes?"), QMessageBox::Ok, QMessageBox::No);
+  if ( QMessageBox::No == reply) {
+    return;
+  }
+  m_command->gitReset();
   QDir dir(m_workdirRoot);
   m_tmpRoot.clear();
   updateView(dir);

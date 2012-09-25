@@ -41,6 +41,7 @@ class GCodeView : public QWidget
     void gitRm();
     void gitCommit();
     void gitReverse();
+    void gitReset();
     void onItemDoubleCilcked(QTreeWidgetItem* item, int column);
     void onItemClicked(QTreeWidgetItem* item, int column);
     void changeToBranch(const QString& branchName);
@@ -52,6 +53,7 @@ class GCodeView : public QWidget
     QPushButton* m_gitRmButton;
     QPushButton* m_gitReverseButton;//revers
     QPushButton* m_gitCommitButton;
+    QPushButton* m_gitResetButton;
     QString m_workdirRoot;//repos root
     QString m_tmpRoot;//current dir
     GitCommand* m_command;//command to do the git command
