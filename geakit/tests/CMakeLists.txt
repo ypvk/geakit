@@ -52,3 +52,15 @@ set(TEST_COMMAND_HEADS ../src/gui/gitcommand.h)
 qt4_wrap_cpp(TEST_COMMAND_MOC_SRC ${TEST_COMMAND_HEADS})
 add_executable(test_gitcommand ${TEST_COMMAND_SRC} ${TEST_COMMAND_MOC_SRC})
 target_link_libraries(test_gitcommand git2 ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+##test gprocessdialog
+set(TEST_GPROCESSDIALOG_SRC 
+	test_processdialog.cpp
+	../src/gui/gitcommand.cpp
+	../src/gui/gprocessdialog.cpp
+	)
+set(TEST_GPROCESSDIALOG_HEADS 
+	../src/gui/gitcommand.h
+	../src/gui/gprocessdialog.h)
+qt4_wrap_cpp(TEST_GPROCESSDIALOG_MOC_SRC ${TEST_GPROCESSDIALOG_HEADS})
+add_executable(test_gprocessdialog ${TEST_GPROCESSDIALOG_SRC} ${TEST_GPROCESSDIALOG_MOC_SRC})
+target_link_libraries(test_gprocessdialog git2 ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
