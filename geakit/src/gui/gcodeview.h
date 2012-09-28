@@ -46,6 +46,7 @@ class GCodeView : public QWidget
     void onItemClicked(QTreeWidgetItem* item, int column);
     void changeToBranch(const QString& branchName);
     void onBranchChanged();
+    void onSyncButtonClicked();
   private:
     git_repository* m_repos;//repository
     QTreeWidget* m_fileList;
@@ -54,6 +55,7 @@ class GCodeView : public QWidget
     QPushButton* m_gitReverseButton;//revers
     QPushButton* m_gitCommitButton;
     QPushButton* m_gitResetButton;
+    QPushButton* m_gitSyncButton;
     QString m_workdirRoot;//repos root
     QString m_tmpRoot;//current dir
     GitCommand* m_command;//command to do the git command

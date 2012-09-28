@@ -4,6 +4,7 @@
 
 const static QString TAG_HEAD = "refs/tags/";
 const static QString BRANCH_HEAD = "refs/heads/";
+const static QString REMOTE_RBANCH_HEAD = "refs/remote/"
 QString GitCommand::diffFileInfosIndex = "";
 QString GitCommand::diffFileInfosTree = "";
 
@@ -53,10 +54,12 @@ void GitCommand::processFinished(int exitCode, QProcess::ExitStatus exitStatus) 
   if (exitStatus == QProcess::CrashExit) 
   {
     qDebug() << "crashed";
+    emit processErrored();
   }
   else 
   {
     qDebug() << "process, exitCode: " << exitCode;
+    emit processSuccess(); 
   }
     this->removeEnviroment();
     emit finishedProcess();
@@ -241,11 +244,10 @@ void GitCommand::gitClone(const QString& projectName, const QString& url)
 {
   QString cmd = QString("git clone %1").arg(url);
   qDebug() << "cloning ... ";
-  //do it asycronize
-  //m_shouldResetTheUrl = true;
   m_projectName = projectName;
 
-  this->setWaitTime(0);
+  //do it synchronize
+  this->setWaitTime(600000);
   this->execute(cmd);
 }
 void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
@@ -474,7 +476,8 @@ bool GitCommand::gitPush(const QString& url)
     return false;
   }
   QString cmd = QString("git push %1").arg(url);
-  this->setWaitTime(0);
+  //run it Sync
+  this->setWaitTime(600000);
   this->execute(cmd);
   qDebug() << this->output();
   //TODO
@@ -482,7 +485,7 @@ bool GitCommand::gitPush(const QString& url)
 }
 QString GitCommand::gitRemoteUrl(const QString& remoteName)
 {
-  git_remote* m_remote;
+  /it_remote* m_remote;
   int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
   if (error < GIT_OK) {
     qDebug() << "error get remote";
@@ -498,7 +501,9 @@ bool GitCommand::gitFetch(const QString& url)
     return false;
   }
   QString cmd = QString("git fetch %1").arg(url);
-  qDebug() << this->runSyc(cmd);
+  //run sync
+  this->setWaitTime(600000);
+  this->execute(cmd);
   return true;
 }
 bool GitCommand::setupEnvironment()
@@ -727,3 +732,18 @@ void GitCommand::gitReset()
 GitCommand::~GitCommand() {
 }
 
+void GitCommand::kill() 
+{
+  m_process->kill();
+}
+
+bool GitCommand::branchExists(const QString& branch, bool is_remote)
+{
+  QStringList branchList = this->gitRefs();
+  if (is_remote) {
+    return branchList.contains(REMOTE_RBANCH_HEAD + branch);
+  }
+  else {
+    return brnachList.contains(BRANCH_HEAD + branch);
+  }
+}

@@ -34,6 +34,7 @@ set(GEAKIT_SRCS
 	src/gui/gcodevieweditor.cpp
 	src/gui/gremotenamedialog.cpp
 	src/gui/gprojectsview.cpp
+	src/gui/gprocessdialog.cpp
 	)
 
 set(GEAKIT_HEADERS
@@ -54,6 +55,7 @@ set(GEAKIT_HEADERS
 	src/gui/gcodevieweditor.h
 	src/gui/gremotenamedialog.h
 	src/gui/gprojectsview.h
+	src/gui/gprocessdialog.h
 	)
 
 set(GEAKIT_UIS

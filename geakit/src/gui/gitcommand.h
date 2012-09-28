@@ -49,10 +49,12 @@ class GitCommand : public QThread
     bool gitCheckoutIndex();
     bool gitCheckoutTree();
     bool gitCommit(const QString& message, const QString& name, const QString& email);
+    bool branchExists(const QString& branch, bool is_remote = false);
     QString gitRemoteUrl(const QString& remoteName);
     const QString gitHeadCommitOid();
     void setWaitTime(int waitTime);
     QProcess* getProcess() const;
+    void kill();
   public:
     static QString diffFileInfosIndex;
     static QString diffFileInfosTree;
@@ -63,6 +65,8 @@ class GitCommand : public QThread
     static int printer(void*, git_diff_delta*, git_diff_range*, char, const char*, size_t);
   signals:
     void finishedProcess();//add signals if process is finished
+    void processErrored();
+    void processSuccess();
   private slots:
     void redFromStdOut();
     void redFromStdErr();

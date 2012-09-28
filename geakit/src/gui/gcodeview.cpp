@@ -3,6 +3,7 @@
 #include "gcommitdialog.h"
 #include "gcodevieweditor.h"
 #include "data/account.h"
+#include "gprocessdialog.h"
 
 #include <QHeaderView>
 #include <QPointer>
@@ -35,6 +36,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   m_gitReverseButton = new QPushButton(tr("Reverse"), this);
   m_gitCommitButton = new QPushButton(tr("Commit"), this);
   m_gitResetButton = new QPushButton(tr("Reset"), this);
+  m_gitSyncButton = new QPushButton(tr("Sync"), this);
   m_splitter = new QSplitter(this);
   m_editor = new GCodeViewEditor(this);
   m_contentArea = new QGroupBox(tr("content"), this);
@@ -63,6 +65,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   buttonLayout->addWidget(m_gitReverseButton);
   buttonLayout->addWidget(m_gitCommitButton);
   buttonLayout->addWidget(m_gitResetButton);
+  buttonLayout->addWidget(m_gitSyncButton);
 
   bottomLayout->addWidget(m_splitter);
   //bottomLayout->addLayout(buttonLayout);
@@ -76,6 +79,7 @@ GCodeView::GCodeView(QWidget* parent, git_repository* repos) : QWidget(parent)
   connect(m_gitCommitButton, SIGNAL(clicked()), this, SLOT(gitCommit()));
   connect(m_gitReverseButton, SIGNAL(clicked()), this, SLOT(gitReverse()));
   connect(m_gitResetButton, SIGNAL(clicked()), this, SLOT(gitReset()));
+  connect(m_gitSyncButton, SIGNAL(clicked()), this, SLOT(onSyncButtonClicked()));
 
 
   m_fileList->setHeaderLabels(QStringList() << tr("Name") << tr("status"));
@@ -452,4 +456,13 @@ void GCodeView::gitReset()
 void GCodeView::setAccount(GAccount* account)
 {
   this->m_account = account;
+}
+void GCodeView::onSyncButtonClicked()
+{
+  GProcessDialog* dlg = new GProcessDialog(this);
+  dlg->setTitleName(tr("Sync"));
+  dlg->setContent(tr("Sync"));
+  dlg->setCommand(m_command);
+  dlg->exec();
+  delete dlg;
 }

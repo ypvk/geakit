@@ -19,9 +19,14 @@ class GProcessDialog : public QDialog
     void setCommand(GitCommand* command);
   public slots:
     void show();
+    void exec(const QString& type, const QString& target = "");
   private slots:
     void onCancelButtonClicked();
     void changeContent();
+    void onProcessSuccess();
+    void onProcessError();
+  private:
+    void Sync(const QString& target, int step);
   signals:
     void canceled();
   private:
@@ -31,5 +36,8 @@ class GProcessDialog : public QDialog
     GitCommand* m_command;
     int m_times;
     QTimer* m_timer;
+    bool m_isSync;
+    int m_syncStep;
+    QString m_target;
 };
 #endif /**GPROCESSDIALOG_H*/
