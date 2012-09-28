@@ -25,7 +25,7 @@ class GitCommand : public QThread
     void createRemote(const QString& remoteName, const QString& remoteUrl);
     void removeRemote(const QString& remoteName);
     void gitCheckout(const QString& shaId);
-    void gitClone(const QString& projectName, const QString& url);
+    void gitClone(const QString& url);
     void gitResetConfigUrl(const QString& url);
     void setRepository(git_repository* repo);
     void gitAdd(const QStringList& fileList);

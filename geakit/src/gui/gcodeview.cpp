@@ -459,10 +459,20 @@ void GCodeView::setAccount(GAccount* account)
 }
 void GCodeView::onSyncButtonClicked()
 {
+  if (m_account->password() == "" || m_account->username() == "") {
+    QMessageBox::warning(this, tr("warning"), tr("please set the password or in the setting dialog"));
+    return;
+  }
+  m_command->setPassword(m_account->password());
+  m_command->setUsername(m_account->username());
   GProcessDialog* dlg = new GProcessDialog(this);
-  dlg->setTitleName(tr("Sync"));
-  dlg->setContent(tr("Sync"));
+  dlg->setTitleName("Sync");
+  dlg->setContent("Sync");
   dlg->setCommand(m_command);
-  dlg->exec();
+  if (QDialog::Rejected == dlg->exec("Sync", "origin")) {
+    delete dlg;
+    return;
+  }
   delete dlg;
+  return;
 }

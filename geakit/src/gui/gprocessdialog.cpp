@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include "gprocessdialog.h"
 #include "gitcommand.h"
 
@@ -64,7 +65,7 @@ void GProcessDialog::show()
   m_timer->start();
   QDialog::show();
 }
-void GProcessDialog::exec(const QString& type, const QString& target)
+int GProcessDialog::exec(const QString& type, const QString& target)
 {
   if (type == "Sync") {
     this->Sync(target, 0);  
@@ -81,7 +82,7 @@ void GProcessDialog::exec(const QString& type, const QString& target)
   connect(m_command, SIGNAL(processSuccess()), this, SLOT(onProcessSuccess()));
   connect(m_command, SIGNAL(processErrored()), this, SLOT(onProcessError()));
   m_timer->start();
-  QDialog::exec();
+  return QDialog::exec();
 }
 
 void GProcessDialog::Sync(const QString& target, int step)
@@ -91,14 +92,16 @@ void GProcessDialog::Sync(const QString& target, int step)
       m_command->gitFetch(target);
       break;
     case 1:
-      QString head = m_command->gitRefHead();
-      QString remoteBranchName = QString("%1/%2").arg(target).arg(head);
-      if (m_command->branchExists(remoteBranchName)) {
-        m_command->gitMergeBranch(remoteBrnachName);
+      {
+        QString head = m_command->gitRefHead();
+        QString remoteBranchName = QString("%1/%2").arg(target).arg(head);
+        if (m_command->branchExists(remoteBranchName)) {
+          m_command->gitMergeBranch(remoteBranchName);
+        }
+        else 
+          this->Sync(m_target, ++m_syncStep);
+        break;
       }
-      else 
-        this->Sync(m_target, ++m_syncStep);
-      break;
     case 2:
       m_command->gitPush(target);
       break;

@@ -4,7 +4,7 @@
 
 const static QString TAG_HEAD = "refs/tags/";
 const static QString BRANCH_HEAD = "refs/heads/";
-const static QString REMOTE_RBANCH_HEAD = "refs/remote/"
+const static QString REMOTE_RBANCH_HEAD = "refs/remote/";
 QString GitCommand::diffFileInfosIndex = "";
 QString GitCommand::diffFileInfosTree = "";
 
@@ -240,14 +240,13 @@ void GitCommand::gitCheckout(const QString& shaId) {
   QString cmd = QString("git checkout %1").arg(shaId);
   this->execute(cmd);
 }
-void GitCommand::gitClone(const QString& projectName, const QString& url)
+void GitCommand::gitClone(const QString& url)
 {
   QString cmd = QString("git clone %1").arg(url);
   qDebug() << "cloning ... ";
-  m_projectName = projectName;
 
   //do it synchronize
-  this->setWaitTime(600000);
+  this->setWaitTime(0);
   this->execute(cmd);
 }
 void GitCommand::gitResetConfigUrl(const QString& reposWorkdir)
@@ -477,7 +476,7 @@ bool GitCommand::gitPush(const QString& url)
   }
   QString cmd = QString("git push %1").arg(url);
   //run it Sync
-  this->setWaitTime(600000);
+  this->setWaitTime(0);
   this->execute(cmd);
   qDebug() << this->output();
   //TODO
@@ -485,7 +484,7 @@ bool GitCommand::gitPush(const QString& url)
 }
 QString GitCommand::gitRemoteUrl(const QString& remoteName)
 {
-  /it_remote* m_remote;
+  git_remote* m_remote;
   int error = git_remote_load(&m_remote, m_repo, remoteName.toLocal8Bit().constData());
   if (error < GIT_OK) {
     qDebug() << "error get remote";
@@ -502,7 +501,7 @@ bool GitCommand::gitFetch(const QString& url)
   }
   QString cmd = QString("git fetch %1").arg(url);
   //run sync
-  this->setWaitTime(600000);
+  this->setWaitTime(0);
   this->execute(cmd);
   return true;
 }
@@ -744,6 +743,6 @@ bool GitCommand::branchExists(const QString& branch, bool is_remote)
     return branchList.contains(REMOTE_RBANCH_HEAD + branch);
   }
   else {
-    return brnachList.contains(BRANCH_HEAD + branch);
+    return branchList.contains(BRANCH_HEAD + branch);
   }
 }

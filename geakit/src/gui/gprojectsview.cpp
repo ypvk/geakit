@@ -1,6 +1,7 @@
 #include "gprojectsview.h"
 #include "data/account.h"
 #include "gitcommand.h"
+#include "gprocessdialog.h"
 
 #include <QPushButton>
 #include <QListWidget>
@@ -67,7 +68,7 @@ GProjectsView::GProjectsView (QWidget* parent, GAccount* account) : QWidget(pare
   connect(m_refreshButton, SIGNAL(clicked()), this, SLOT(onRefreshButtonClicked()));
 
   connect(m_projectsLocal, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onItemDoubleClicked(QListWidgetItem*)));
-  connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
+  //connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
 }
 void GProjectsView::addProjectToLocal() {
   if (NULL == m_account) {
@@ -109,8 +110,15 @@ void GProjectsView::addProjectToLocal() {
     m_command->setWorkDir(dirName);
     //here use https://name@github.com/name/repos_name.git as the url;
     QString reposUrl = QString("https://%1@github.com/%1/%2.git").arg(m_account->username()).arg(projectName);
-    m_command->gitClone(projectName, reposUrl);
-    m_projectsLocal->setEnabled(false);
+    //m_command->gitClone(reposUrl);
+    GProcessDialog* dlg = new GProcessDialog(this);
+    dlg->setTitleName("Clone");
+    dlg->setContent("Clone");
+    dlg->setCommand(m_command);
+    if (dlg->exec("Clone", reposUrl) == QDialog::Rejected) {
+      return;
+    }
+    //m_projectsLocal->setEnabled(false);
     QListWidgetItem* item = new QListWidgetItem(m_projectsLocal);
     QString proPath = QDir::toNativeSeparators(QString("%1/%2").arg(dirName).arg(projectName));
     QString tmpText = QString("%1:\t%2").arg(projectName).arg(proPath);

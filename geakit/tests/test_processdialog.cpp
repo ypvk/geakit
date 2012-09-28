@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QDebug>
 #include "gui/gprocessdialog.h"
+#include "gui/gitcommand.h"
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -14,7 +15,8 @@ int main(int argc, char* argv[]) {
   GProcessDialog dlg;
   dlg.setTitleName("Push");
   dlg.setContent("Push");
-  dlg.show();
+  dlg.setCommand(cmd);
+  dlg.exec("Sync", "origin");
   app.exec();
   return 0;
 }

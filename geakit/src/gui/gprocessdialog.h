@@ -19,7 +19,7 @@ class GProcessDialog : public QDialog
     void setCommand(GitCommand* command);
   public slots:
     void show();
-    void exec(const QString& type, const QString& target = "");
+    int exec(const QString& type, const QString& target = "");
   private slots:
     void onCancelButtonClicked();
     void changeContent();

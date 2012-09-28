@@ -17,6 +17,7 @@
 #include "gbranchnamedialog.h"
 #include "gremotenamedialog.h"
 #include "gbutton.h"
+#include "gprocessdialog.h"
 
 GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent) 
 {
@@ -52,7 +53,7 @@ GBranchView::GBranchView(QWidget* parent, git_repository* repo) : QWidget(parent
   m_mainLayout->addLayout(m_actionButtonLayout);
   mainWidget->setLayout(m_mainLayout);
 
-  connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
+  //connect(m_command, SIGNAL(finishedProcess()), this, SLOT(onProcessFinished()));
  
   //connect the button signal
   connect(m_pushButton, SIGNAL(clicked()), this, SLOT(onPushButtonClicked()));
@@ -153,8 +154,17 @@ void GBranchView::onPushButtonClicked() {
   QString remoteUrl = m_command->gitRemoteUrl(remoteName);
   m_command->setPassword(m_account->password());
   m_command->setUsername(m_account->username());
-  this->setEnabled(false);
-  bool result = m_command->gitPush(remoteUrl);
+  //this->setEnabled(false);
+  //bool result = m_command->gitPush(remoteUrl);
+  GProcessDialog* dlg = new GProcessDialog(this);
+  dlg->setTitleName("Push");
+  dlg->setContent("Push");
+  dlg->setCommand(m_command);
+  if (QDialog::Rejected == dlg->exec("Push", remoteUrl)) {
+    delete dlg;
+    return;
+  }
+  delete dlg;
   return;
 }
 
@@ -168,8 +178,17 @@ void GBranchView::onFetchButtonClicked() {
   QString remoteUrl = m_command->gitRemoteUrl(remoteName);
   m_command->setPassword(m_account->password());
   m_command->setUsername(m_account->username());
-  this->setEnabled(false);
-  bool result = m_command->gitFetch(remoteUrl);
+  //this->setEnabled(false);
+  //bool result = m_command->gitFetch(remoteUrl);
+  GProcessDialog* dlg = new GProcessDialog(this);
+  dlg->setTitleName("Fetch");
+  dlg->setContent("Fetch");
+  dlg->setCommand(m_command);
+  if (QDialog::Rejected == dlg->exec("Fetch", remoteUrl)) {
+    delete dlg;
+    return;
+  }
+  delete dlg;
   return;
 }
 //QString GBranchView::getRemoteUrl(const QString& remoteName) {
@@ -330,11 +349,21 @@ void GBranchView::gitSynchronize(const QString& branch, const QString& remote)
   QString remoteUrl = m_command->gitRemoteUrl(remote);
   m_command->setPassword(m_account->password());
   m_command->setUsername(m_account->username());
-  this->setEnabled(false);
-  bool result = m_command->gitFetch(remoteUrl);
-  QString remoteBranch = QString("%1/%2").arg(remote).arg(branch);
-  result = m_command->gitMergeBranch(remoteBranch);
-  result = m_command->gitPush(remoteUrl);
+  //this->setEnabled(false);
+  //bool result = m_command->gitFetch(remoteUrl);
+  //QString remoteBranch = QString("%1/%2").arg(remote).arg(branch);
+  //result = m_command->gitMergeBranch(remoteBranch);
+  //result = m_command->gitPush(remoteUrl);
+  GProcessDialog* dlg = new GProcessDialog(this);
+  dlg->setTitleName("Sync");
+  dlg->setContent("Sync");
+  dlg->setCommand(m_command);
+  if (QDialog::Rejected == dlg->exec("Sync", remoteUrl)) {
+    delete dlg;
+    return;
+  }
+  delete dlg;
+  return;
 }
 void GBranchView::onSyncButtonClicked()
 {
